@@ -1,0 +1,3 @@
+display_name: Interview Classroom Content
+short_description: Creates deep interview notes for any technical concept, from basics to advanced follow-ups.
+default_prompt: Create one deep classroom-style interview answer with examples, internals, tricky cases, production usage, advanced details, and follow-up Q&A.
