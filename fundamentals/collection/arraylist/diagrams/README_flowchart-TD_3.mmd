@@ -1,0 +1,11 @@
+flowchart TD
+    START["add element"] --> CHECK{"size >= capacity?"}
+    CHECK -->|No| STORE["elementData[size] = element<br>size++"]
+    CHECK -->|Yes| GROW["grow()<br>newCap = oldCap * 1.5"]
+    GROW --> COPY["Arrays.copyOf old to new"]
+    COPY --> STORE
+    
+    REMOVE["remove(index)"] --> SHIFT{"index == last?"}
+    SHIFT -->|Yes| NULLIFY["elementData[--size] = null"]
+    SHIFT -->|No| MOVE["System.arraycopy shift left"]
+    MOVE --> NULLIFY

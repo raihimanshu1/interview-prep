@@ -79,6 +79,178 @@ Identify the bottleneck at each scale level and how to address it:
 
 ## 3. Common Design Problems and Their Solutions
 
+### Architecture Diagrams
+
+#### URL Shortener Architecture
+```mermaid
+graph TD
+    subgraph "Client"
+        U[User]
+    end
+    
+    subgraph "CDN & Load Balancer"
+        LB[Load Balancer]
+        CDN[CDN - cache redirects]
+    end
+    
+    subgraph "Application Layer"
+        WR[Write Service<br/>POST /shorten]
+        RD[Read Service<br/>GET /{key}]
+        ID[ID Generator<br/>Snowflake]
+    end
+    
+    subgraph "Cache Layer"
+        RC[Redis Cache<br/>LRU eviction<br/>TTL: 1 hour]
+    end
+    
+    subgraph "Database Layer"
+        PG[(PostgreSQL<br/>Primary + Replicas)]
+    end
+    
+    subgraph "Async"
+        MQ[Message Queue]
+        AN[Analytics Service]
+    end
+    
+    U -->|POST longUrl| LB
+    LB --> WR
+    WR --> ID -->|base62 key| WR
+    WR --> PG
+    WR --> MQ --> AN
+    
+    U -->|GET shortKey| LB
+    LB --> RD
+    RD --> RC
+    RC -->|cache hit| RD
+    RC -->|cache miss| PG -->|redirect url| RD
+    RD -->|301 redirect| U
+    
+    CDN -.->|cache static content| U
+```
+
+#### News Feed (Hybrid Fanout) Architecture
+```mermaid
+graph TD
+    subgraph "Write Path (User posts a tweet)"
+        U[User] --> P[Post Service]
+        P --> TD[(Tweet DB<br/>PostgreSQL)]
+        P -->|Fanout for followers < 1000| MQ[Kafka<br/>Fanout Worker]
+        MQ --> TL[(Timeline Cache<br/>Redis<br/>List per user)]
+    end
+    
+    subgraph "Read Path (User loads timeline)"
+        R[Reader] --> TLF[Timeline Service]
+        TLF --> TL
+        TLF -->|Celebrity tweets (pull)| CT[(Celebrity Timeline Cache<br/>Redis)]
+        TLF -->|Merge + rank| R
+    end
+    
+    subgraph "Celebrity Path (followers > 1000)"
+        C[Celebrity] --> P
+        CT -->|Recent 100 tweets cached| TLF
+    end
+    
+    subgraph "Async Processing"
+        MQ --> AN[Analytics]
+        MQ --> NS[Notification Service]
+    end
+```
+
+#### Chat System Architecture
+```mermaid
+graph LR
+    subgraph "Clients"
+        C1[Client 1]
+        C2[Client 2]
+        C3[Client 3]
+    end
+    
+    subgraph "Connection Layer"
+        WS[WebSocket Handler<br/>Consistent hashing by user_id]
+        LB[Load Balancer]
+    end
+    
+    subgraph "Message Processing"
+        RT[Message Router]
+        OF[Offline Queue<br/>Redis]
+    end
+    
+    subgraph "Storage"
+        CS[(Cassandra<br/>Messages by conversation)]
+        US[(User Store<br/>PostgreSQL)]
+    end
+    
+    subgraph "Presence & Delivery"
+        PR[Presence Service<br/>Redis]
+        PS[Push Service<br/>FCM/APNS]
+    end
+    
+    C1 --> LB --> WS
+    C2 --> LB --> WS
+    C3 --> LB --> WS
+    
+    WS --> RT
+    RT --> CS
+    RT --> PR
+    RT --> PS
+    
+    RT -->|Offline delivery| OF
+    OF -->|On reconnect| RT
+    
+    RT -->|Pull last N messages| CS
+    WS -->|Deliver to recipient| C2
+```
+
+#### Video Platform (YouTube) Architecture
+```mermaid
+graph TD
+    subgraph "Upload"
+        UL[Upload Service]
+        CH[Chunked Upload<br/>4MB chunks]
+        BS[(Blob Storage<br/>S3)]
+    end
+    
+    subgraph "Transcoding"
+        MQ[Kafka<br/>Transcode Jobs]
+        TW1[Transcode Worker<br/>360p]
+        TW2[Transcode Worker<br/>720p]
+        TW3[Transcode Worker<br/>1080p]
+        TW4[Transcode Worker<br/>4K]
+    end
+    
+    subgraph "Delivery"
+        CDN[CDN<br/>HLS Segments]
+        OR[Origin Server]
+        CDN -->|cache miss| OR
+    end
+    
+    subgraph "Metadata"
+        MD[(PostgreSQL<br/>title, description, views)]
+        WH[(Cassandra<br/>Watch history)]
+    end
+    
+    subgraph "Client"
+        PL[Player<br/>HLS.js / ExoPlayer]
+    end
+    
+    User --> CH --> UL --> BS
+    BS --> MQ
+    MQ --> TW1
+    MQ --> TW2
+    MQ --> TW3
+    MQ --> TW4
+    TW1 --> CDN
+    TW2 --> CDN
+    TW3 --> CDN
+    TW4 --> CDN
+    
+    PL -->|Request manifest| CDN
+    PL -->|Stream segments| CDN
+    PL -->|POST watch event| WH
+    
+    UL --> MD
+```
+
 ### URL Shortener
 ```
 Challenge: Generate short, unique keys for URLs

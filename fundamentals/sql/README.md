@@ -139,6 +139,168 @@ SELECT e.name, d.name FROM employees e JOIN departments d ON e.department_id = d
 - PostgreSQL: `VACUUM` required to reclaim space from dead tuples.
 - MySQL: InnoDB automatically reclaims space (but undo logs can grow).
 
+## 5. Index Deep Dive — Interview Critical
+
+### How B+Tree Index Works (The Data Structure)
+
+```
+Non-Clustered Index (B+Tree):
+        
+        [Root Page]
+       /     |      \
+   [Internal] [Internal] [Internal]
+      / \       / \        / \
+   [Leaf] [Leaf] [Leaf] [Leaf] [Leaf]
+    |      |      |      |      |
+   Row1   Row2  Row3   Row4   Row5  ← sorted by index key
+    ↑      ↑      ↑      ↑      ↑
+   (pointer to actual table row - heap tuple ID)
+
+Clustered Index (InnoDB primary key):
+    
+        [Root]
+       /   |   \
+   [Int] [Int] [Int]
+      |     |     |
+    Leaf  Leaf  Leaf
+      |     |     |
+   Row1  Row5  Row9  ← table data IS the index (no separate pointer)
+```
+
+**Key properties:**
+- Height 3-4 levels for millions of rows → O(log n) lookup
+- Leaf pages linked doubly → efficient range scans
+- Non-leaf pages cached in buffer pool
+- Page size 16KB (PostgreSQL/MySQL default) → ~100-200 rows per page
+
+**Index types:**
+| Type | Use case | Example |
+|------|----------|---------|
+| B-Tree | Equality + range, sorting | `WHERE salary > 50000 ORDER BY salary` |
+| Hash | Exact matches only (no range) | Redis key-value, PostgreSQL hash index |
+| GiST | Geometric, full-text, arrays | PostGIS, `tsvector` |
+| GIN | Multi-value (JSONB, arrays) | `WHERE JSONB @> '{"a": 1}'` |
+| BRIN | Naturally ordered data (time-series) | `CREATE INDEX ON logs USING BRIN(created_at)` |
+
+**What happens when you INSERT with index:**
+```
+INSERT INTO employees (id, name, salary) VALUES (101, 'Alice', 95000);
+1. Insert row into table (heap)
+2. Navigate B+Tree for idx_salary: root → internal → leaf
+3. Insert (95000, row_id=101) into leaf page
+4. If leaf page full: page split (creates new page, redistributes entries)
+5. Update parent internal node with new page pointer
+```
+
+**Cost without index:**
+- Full table scan: O(n) — reads every page
+- For 10M rows = reads ~100K pages × 16KB = ~1.6GB of disk I/O
+
+**Cost with index:**
+- B+Tree lookup: O(log n) — reads ~3-4 pages
+- For 10M rows = reads ~4 pages × 16KB = ~64KB of disk I/O → 25,000x less I/O
+
+### Composite Index Internals (Leftmost Prefix Rule)
+
+```
+Index: (user_id, status, created_at)
+
+Tree structure (simplified):
+[user_id=1 | user_id=2 | user_id=3 | ...]
+   |           |            |
+[status=A   [status=A   [status=C
+ created=X]  created=Y]  created=Z]
+```
+
+**Query matching rules:**
+```sql
+WHERE user_id = 123 AND status = 'PAID'
+-- ✅ Uses both columns (leftmost prefix)
+
+WHERE status = 'PAID'
+-- ❌ Cannot use index (skips user_id)
+
+WHERE user_id = 123 AND created_at > '2024-01-01'
+-- ⚠️ Uses user_id, then filters status manually
+-- (cannot skip middle column for range)
+
+WHERE user_id = 123 AND status IN ('PAID','PENDING') AND created_at > '2024-01-01'
+-- ✅ Uses user_id + status equality, then range on created_at
+```
+
+**Order matters:**
+- Equality columns first (exact matches)
+- Range/ORDER BY columns last
+- Low-cardinality columns early? Only if combined with high-cardinality
+
+### Covering Index (Index-Only Scan)
+
+```sql
+CREATE INDEX idx_user_email_status ON users(email, status);
+
+-- Query uses ONLY the index — never touches table!
+SELECT email, status FROM users WHERE email = 'alice@example.com';
+```
+Why fast: index contains all needed columns → no heap fetch → avoids random I/O.
+
+**PostgreSQL example (EXPLAIN ANALYZE):**
+```sql
+EXPLAIN ANALYZE SELECT email, status FROM users WHERE email = 'alice@example.com';
+
+-- Index Only Scan using idx_user_email_status  (cost=0.43..8.45 rows=1 width=64)
+--   Index Cond: (email = 'alice@example.com'::text)
+--   Heap Fetches: 0  ← covering index, no table access!
+```
+
+### Index Cost: The Hidden Price
+
+Every INSERT/UPDATE/DELETE pays:
+1. Write to table (heap)
+2. Write to EVERY index on that table
+3. Possible page split (fragmentation)
+4. B+Tree page flush to WAL/redo log
+
+**Rule of thumb:**
+- Read-heavy tables: more indexes OK
+- Write-heavy tables (logs, events): minimize indexes
+- Each index adds ~5-15% write overhead
+
+### When Indexes FAIL
+
+**Case 1: Function kills index**
+```sql
+WHERE LOWER(email) = 'alice@example.com'  -- ❌ Index on email NOT used
+-- Fix: expression index
+CREATE INDEX idx_email_lower ON users(LOWER(email));
+```
+
+**Case 2: Type mismatch**
+```sql
+WHERE user_id = '123'  -- column is INTEGER, compared as VARCHAR
+-- ❌ Implicit cast disables index
+-- Fix: use correct type
+WHERE user_id = 123    -- ✅
+```
+
+**Case 3: NOT IN / NOT EXISTS**
+```sql
+WHERE id NOT IN (SELECT user_id FROM banned)  -- ❌ Often not optimized
+-- Better: LEFT JOIN ... WHERE banned.user_id IS NULL
+```
+
+**Case 4: Leading wildcard**
+```sql
+WHERE name LIKE '%son'  -- ❌ Cannot use B+Tree index
+WHERE name LIKE 'son%'  -- ✅ Uses index
+```
+Solutions: trigram indexes (pg_trgm), Elasticsearch, or reverse the string.
+
+**Case 5: OR without UNION**
+```sql
+WHERE id = 123 OR email = 'a@b.com'  -- ❌ Single index may not help
+-- Fix: separate queries or partial indexes
+```
+
 ## 5. Tricky Interview Cases
 
 **Case 1 — SELECT without ORDER BY**

@@ -1,0 +1,27 @@
+classDiagram
+    class Queue {
+        <<interface>>
+        +offer(E) boolean
+        +poll() E
+        +peek() E
+    }
+    class AbstractQueue {
+        <<abstract>>
+    }
+    class PriorityQueue~E~ {
+        -Object[] queue
+        -int size
+        -Comparator~E~ comparator
+        +offer(E) boolean
+        +poll() E
+        +peek() E
+        +comparator() Comparator
+    }
+    class PriorityBlockingQueue~E~ {
+    }
+    
+    Queue <|.. AbstractQueue
+    AbstractQueue <|-- PriorityQueue
+    PriorityQueue <|-- PriorityBlockingQueue : thread-safe
+    Cloneable <|.. PriorityQueue
+    Serializable <|.. PriorityQueue

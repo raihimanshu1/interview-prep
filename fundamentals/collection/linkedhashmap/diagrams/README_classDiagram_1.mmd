@@ -1,0 +1,28 @@
+classDiagram
+    class Map {
+        <<interface>>
+        +put(K,V) V
+        +get(Object) V
+    }
+    class HashMap~K,V~ {
+        -Node~K,V~[] table
+        +put(K,V) V
+        +get(Object) V
+    }
+    class LinkedHashMap~K,V~ {
+        -Entry~K,V~ head
+        -Entry~K,V~ tail
+        -boolean accessOrder
+        +get(Object) V
+        +removeEldestEntry(Map.Entry) boolean
+    }
+    class Entry~K,V~ {
+        -K key
+        -V value
+        -Entry~K,V~ before
+        -Entry~K,V~ after
+    }
+    
+    Map <|.. HashMap
+    HashMap <|-- LinkedHashMap
+    LinkedHashMap "1" *--> "0..*" Entry : doubly-linked

@@ -1,319 +1,279 @@
 # ConcurrentHashMap — Complete Deep Dive
 
-## 1. Why This Concept Matters
+## 1. Hierarchy & Position
 
-ConcurrentHashMap is the go-to thread-safe Map implementation in Java. It provides high concurrency by locking only a portion of the map (segments/buckets) rather than the entire structure. Understanding its internal segregation, lock-free reads, and CAS operations is essential for writing performant concurrent code. In production, ConcurrentHashMap is used for caches, configuration stores, and any shared mutable state accessed by multiple threads. Interviewers test this because it reveals your understanding of concurrent data structures, lock granularity, and the Java Memory Model.
 
-Misunderstanding ConcurrentHashMap causes:
-- Performance bottlenecks from coarse synchronization
-- Race conditions from assuming atomicity of compound operations
-- Memory consistency errors from incorrect expectations
-- Using `Collections.synchronizedMap()` when ConcurrentHashMap is superior
+![README_classDiagram_1](./diagrams/README_classDiagram_1.png)
 
-## 2. Basic Meaning
-
-ConcurrentHashMap is a hash-table based Map implementation supporting full concurrency for reads and adjustable concurrency for writes.
-
-**Key vocabulary:**
-- **Segmentation (Java 7)**: map divided into segments, each with its own lock
-- **Synchronized blocks (Java 8+)**: synchronized on first node of each bin (bucket)
-- **CAS (Compare-And-Swap)**: lock-free atomic operations for head node updates
-- **`size()`**: approximate in Java 7+, sum of counter cells in Java 8+
-- **`get()`**: lock-free, volatile read
-- **`put()`**: locks only affected bucket
-- **`Segment`**: in Java 7, a mini HashMap with its own lock
-
-What it is NOT: ConcurrentHashMap is not a drop-in replacement for `Collections.synchronizedMap()` in all cases. It does NOT lock the entire map. It does NOT guarantee atomicity of compound operations like `putIfAbsent` + `get`.
-
-## 3. Real Code / Real Example
-
-```java
-import java.util.concurrent.*;
-
-public class ConcurrentHashMapDemo {
-    public static void main(String[] args) throws InterruptedException {
-        // === BASIC USAGE ===
-        ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
-        map.put("Alice", 30);
-        map.put("Bob", 25);
-        map.put("Charlie", 35);
-        System.out.println("Map: " + map);
-
-        // === NULL KEYS/VALUES NOT ALLOWED ===
-        try { map.put(null, 0); } catch (NullPointerException e) { System.out.println("NPE on null key"); }
-        try { map.put("X", null); } catch (NullPointerException e) { System.out.println("NPE on null value"); }
-
-        // === CONCURRENT WRITES ===
-        ConcurrentHashMap<Integer, String> counter = new ConcurrentHashMap<>();
-        Runnable writer = () -> {
-            for (int i = 0; i < 100; i++) {
-                counter.put(i, "val-" + i);
-            }
-        };
-        Thread t1 = new Thread(writer);
-        Thread t2 = new Thread(writer);
-        t1.start(); t2.start();
-        t1.join(); t2.join();
-        System.out.println("Counter size: " + counter.size()); // 100 (not 200, keys same)
-
-        // === ATOMIC OPERATIONS ===
-        ConcurrentHashMap<String, Integer> inventory = new ConcurrentHashMap<>();
-        inventory.put("apple", 10);
-        // putIfAbsent: atomic check-and-put
-        Integer prev = inventory.putIfAbsent("apple", 20);
-        System.out.println("Previous value: " + prev); // 10 (existing)
-        System.out.println("After putIfAbsent: " + inventory.get("apple")); // 10 (not replaced)
-
-        // replace: atomic compare-and-swap
-        boolean replaced = inventory.replace("apple", 10, 99); // replace only if current == 10
-        System.out.println("Replaced: " + replaced); // true
-        System.out.println("After replace: " + inventory.get("apple")); // 99
-
-        // === COMPOUND OPERATIONS (not atomic) ===
-        ConcurrentHashMap<String, Integer> sales = new ConcurrentHashMap<>();
-        sales.put("widget", 5);
-        // NOT ATOMIC: read-modify-write
-        Integer old = sales.get("widget");
-        Integer newVal = (old == null) ? 1 : old + 1;
-        sales.put("widget", newVal); // race condition possible here!
-
-        // ATOMIC alternative: compute
-        sales.compute("widget", (k, v) -> (v == null) ? 1 : v + 1);
-        System.out.println("Sales: " + sales.get("widget"));
-
-        // === ITERATION ===
-        ConcurrentHashMap<String, Integer> iterMap = new ConcurrentHashMap<>();
-        iterMap.put("A", 1); iterMap.put("B", 2); iterMap.put("C", 3);
-        System.out.print("Iteration: ");
-        for (String key : iterMap.keySet()) {
-            System.out.print(key + "=" + iterMap.get(key) + " ");
-            // Safe to modify map during iteration (concurrent collection)
-            if (key.equals("A")) iterMap.put("D", 4);
-        }
-        System.out.println();
-
-        // === SIZE AND EMPTY ===
-        System.out.println("Size: " + iterMap.size()); // 4
-        System.out.println("Empty: " + iterMap.isEmpty()); // false
+```mermaid
+classDiagram
+    class Map {
+        <<interface>>
+        +put(K,V) V
+        +get(Object) V
     }
-}
+    class ConcurrentMap {
+        <<interface>>
+        +putIfAbsent(K,V) V
+        +replace(K,V,V) boolean
+        +remove(Object,Object) boolean
+    }
+    class ConcurrentHashMap {
+        -Node~K,V~[] table
+        -transient volatile int sizeCtl
+        +put(K,V) V
+        +get(Object) V
+        +computeIfAbsent(K, Function) V
+    }
+    class Node~K,V~ {
+        -int hash
+        -K key
+        -V val
+        -volatile Node~K,V~ next
+    }
+    class TreeNode~K,V~ {
+        -TreeNode~K,V~ parent
+        -TreeNode~K,V~ left
+        -TreeNode~K,V~ right
+        -volatile boolean red
+    }
+    class ReservationNode~K,V~ {
+        <<special>>
+    }
+    class ForwardingNode~K,V~ {
+        <<special>>
+        -Node~K,V~[] nextTable
+    }
+    
+    Map <|.. ConcurrentMap
+    ConcurrentMap <|.. ConcurrentHashMap
+    ConcurrentHashMap "1" *--> "0..*" Node : bucket array
+    Node <|-- TreeNode
+    Node <|-- ReservationNode
+    Node <|-- ForwardingNode
+    ConcurrentHashMap --> "uses" CAS : Compare-And-Swap
+    ConcurrentHashMap --> "uses" synchronized : per-bucket lock
 ```
 
-Expected output:
-```
-Map: {Alice=30, Bob=25, Charlie=35}
-NPE on null key
-NPE on null value
-Counter size: 100
-Previous value: 10
-After putIfAbsent: 10
-Replaced: true
-After replace: 99
-Sales: 6
-Iteration: A=1 B=2 C=3 D=4 
-Size: 4
-Empty: false
-```
+**Implements**: `ConcurrentMap<K,V>`, `Serializable`  
+**Extends**: `AbstractMap<K,V>` (Java 8+ — no longer extends)
 
-## 4. What Happens Internally
+## 2. Internal Structure — Java 8+ Redesign
 
-**Java 8+ structure:**
+Java 8 completely rewrote ConcurrentHashMap. Java 7 used **Segment-based locking** (16 segments, each with its own lock). Java 8 uses **synchronized on the first node of each bucket** + **CAS (Compare-And-Swap)** operations. This gives much higher concurrency.
+
 ```java
-public class ConcurrentHashMap<K,V> {
-    transient volatile Node<K,V>[] table;
-    private transient volatile Node<K,V>[] nextTable; // for resize
-    private transient volatile long baseCount;
-    private transient volatile int transferStart; // resize coordination
+public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
+        implements ConcurrentMap<K,V>, Serializable {
 
-    static class Node<K,V> {
+    // TABLE SIZE: similar to HashMap (power of 2)
+    // DEFAULT CAPACITY: 16
+    // LOAD FACTOR: 0.75 (used only for initial capacity calculation)
+    // CONCURRENCY LEVEL: no longer used (Java 8+)
+    
+    transient volatile Node<K,V>[] table;      // The bucket array (volatile!)
+    private transient volatile Node<K,V>[] nextTable;  // For resize (next table)
+    private transient volatile long baseCount;          // Base counter (uncontended)
+    private transient volatile int sizeCtl;             // Control flag
+    // -1: initializing, -N: N-1 threads resizing, positive: threshold
+    private transient volatile int transferIndex;       // Resize progress
+    
+    // Counter cells for high-contention counting
+    private transient volatile CounterCell[] counterCells;
+    
+    // Node structure:
+    static class Node<K,V> implements Map.Entry<K,V> {
         final int hash;
         final K key;
-        volatile V value;       // volatile for lock-free reads
-        volatile Node<K,V> next; // volatile for visibility
+        volatile V val;       // Value is VOLATILE (visibility without locking!)
+        volatile Node<K,V> next;  // Next is VOLATILE
     }
+    
+    // Reservation node (for computeIfAbsent)
+    static final class ReservationNode<K,V> extends Node<K,V> { }
+    
+    // Tree node (when bucket has 8+):
+    static final class TreeNode<K,V> extends Node<K,V> { ... }
+    
+    // Tree bin (head of tree — contains lock-free reader access):
+    static final class TreeBin<K,V> extends Node<K,V> { ... }
 }
 ```
 
-**No segments in Java 8+:** Java 7 used `Segment` array (default 16 segments, each with its own lock). Java 8+ removed segments entirely — uses synchronized on first node of each bin, plus CAS for head updates.
+## 3. Java 7 vs Java 8 — Key Differences
 
-**`get()` flow (lock-free):**
-1. Compute hash: `hash = spread(key.hashCode())`
-2. Compute index: `i = (table.length - 1) & hash`
-3. Read `table[i]` (volatile read, sees latest value)
-4. Traverse linked list/tree at bucket:
-   - If `hash == hash` and `key.equals(node.key)` → return `node.value`
-   - `value` is volatile: reads always see latest write
-5. No locks acquired. Multiple threads can `get()` concurrently.
+| Aspect | Java 7 | Java 8+ |
+|--------|--------|---------|
+| Locking | 16 Segments, each with ReentrantLock | **synchronized on first node** of each bucket |
+| Concurrency | Max 16 concurrent writes (1 per segment) | **Per-bucket locking** — much higher |
+| Reads | Volatile read, no lock | **Lock-free** (volatile + happens-before via CAS) |
+| get() | Segment → bucket → entry | **Direct bucket** (no segment indirection) |
+| put() | Lock segment → find bucket → insert | **spin + CAS** on empty bucket, **synchronize** on first node |
+| Collisions | Linked list (O(n) worst) | Linked list → **Red-Black tree** at 8 (O(log n)) |
+| Size | Sum segment sizes (locking) | **CounterCells** + baseCount (lock-free, approximate) |
+| Null key/value | NOT allowed (throws NPE) | NOT allowed (same) |
+| Memory | Higher (Segment objects) | Lower (no Segment objects) |
 
-**`put()` flow (fine-grained lock):**
-1. Compute hash, compute index
-2. `synchronized (table[i])` — locks only the affected bucket
-3. Traverse list:
-   - If key exists: update value, return old
-   - If not: insert new Node at head
-4. If `size` exceeds `treeifyThreshold` (8): convert bin to tree
-5. If `size >= threshold`: trigger resize (new table array, migrate entries)
+## 4. Put Operation — Lock-free + Synchronized
 
-**CAS operations for head insertion:**
 ```java
-// Simplified: try to set new node as head without locking
-if (U.compareAndSetObject(tab, i, f, newNode)) {
-    // success: new node installed as head atomically
-} else {
-    // CAS failed: another thread inserted, fallback to synchronized
-    synchronized (tab[i]) { ... insert ... }
+public V put(K key, V value) {
+    return putVal(key, value, false);
+}
+
+final V putVal(K key, V value, boolean onlyIfAbsent) {
+    if (key == null || value == null) throw new NullPointerException(); // NO nulls!
+    
+    int hash = spread(key.hashCode());  // h ^ (h >>> 16)
+    int binCount = 0;
+    
+    for (Node<K,V>[] tab = table;;) {         // CAS loop (spin until success)
+        Node<K,V> f; int n, i, fh;
+        
+        if (tab == null || (n = tab.length) == 0)
+            tab = initTable();                  // Lazy init (CAS on sizeCtl)
+        
+        else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
+            // Bucket EMPTY — CAS insert (NO lock!)
+            if (casTabAt(tab, i, null, new Node<K,V>(hash, key, value, null)))
+                break;                          // Success! (lock-free)
+        }
+        
+        else if ((fh = f.hash) == MOVED)
+            tab = helpTransfer(tab, f);         // Help with resize
+        
+        else {
+            V oldVal = null;
+            synchronized (f) {                  // Lock ONLY the first node
+                if (tabAt(tab, i) == f) {       // Double-check after acquiring lock
+                    if (fh >= 0) {               // Linked list
+                        // ... traverse and insert (same as HashMap)
+                    } else if (f instanceof TreeBin) {
+                        // ... tree insert
+                    }
+                }
+            }
+            if (binCount != 0) break;
+        }
+    }
+    addCount(1L, binCount);  // Update size (CounterCells + CAS)
+    return null;
 }
 ```
 
-**Resize in Java 8+:**
-- Cooperative: all threads help migrate entries from old table to new
-- `transfer()` method splits bins, moves entries to new positions
-- Threads blocked on `put()` during resize participate in migration
-- Uses `transferStart` to coordinate start
+## 5. Get Operation — Lock-Free (Completely)
 
-## 5. Tricky Interview Cases
-
-**Case 1 — `putIfAbsent` atomicity**
 ```java
-ConcurrentHashMap<String, String> cache = new ConcurrentHashMap<>();
-// Thread A: cache.putIfAbsent("key", "valueA");
-// Thread B: cache.putIfAbsent("key", "valueB");
-// Result: exactly ONE succeeds, other gets null return
+public V get(Object key) {
+    Node<K,V>[] tab; Node<K,V> e, p; int n, eh; K ek;
+    int h = spread(key.hashCode());
+    
+    if ((tab = table) != null && (n = tab.length) > 0 &&
+        (e = tabAt(tab, (n - 1) & h)) != null) {
+        
+        if ((eh = e.hash) == h) {
+            if ((ek = e.key) == key || (ek != null && key.equals(ek)))
+                return e.val;  // Volatile read — visibility guaranteed
+        }
+        else if (eh < 0)  // TreeBin or ForwardingNode (resize)
+            return (p = e.find(h, key)) == null ? null : p.val;
+        
+        while ((e = e.next) != null) {  // Linked list search
+            if (e.hash == h && ((ek = e.key) == key || (ek != null && key.equals(ek))))
+                return e.val;
+        }
+    }
+    return null;
+}
 ```
-Output: Atomic. Only first writer wins.
-Explanation: `putIfAbsent` locks the bucket during check-and-put. No interleaving.
 
-**Case 2 — `compute()` atomicity**
+**Why get() is lock-free**: `val` and `next` are declared `volatile`. The `U.getObjectVolatile` (tabAt) ensures the bucket head is read from main memory. The `volatile val` ensures value visibility. No lock needed — reads are never blocked by writes.
+
+## 6. Size Tracking — CounterCells
+
 ```java
-ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
-map.compute("key", (k, v) -> v == null ? 1 : v + 1);
-// Atomic: mapping function applied atomically per key
-```
-Output: Atomic increment.
-Explanation: `compute` locks the bin for the duration of the mapping function. Other threads wait.
+// Without contention: just increments baseCount via CAS
+// With contention: uses CounterCell[] to distribute counting
 
-**Case 3 — `size()` is approximate**
+public int size() {
+    long n = sumCount();  // Sum baseCount + all counterCell values
+    return (n < 0L) ? 0 : (n > (long)Integer.MAX_VALUE) ? Integer.MAX_VALUE : (int)n;
+}
+
+// size() is APPROXIMATE — meant for monitoring, not exact control
+// Java 8+ prefers mappingCount() which returns long
+```
+
+## 7. ConcurrentHashMap vs Collections.synchronizedMap
+
+| Aspect | ConcurrentHashMap | synchronizedMap |
+|--------|-----------------|-----------------|
+| Locking | **Per-bucket** (high concurrency) | **Whole map** (one lock) |
+| Reads | **Lock-free** (never blocked) | Locked (blocks) |
+| Concurrent writes | Multiple writers (different buckets) | One writer at a time |
+| Iteration | **Fail-safe** (snapshot) | Fail-fast (must sync) |
+| Null key/value | **NOT allowed** (throws NPE) | **Allowed** |
+| Performance (read) | **Excellent** | Poor under contention |
+| Performance (write) | **Good** (per-bucket lock) | Poor (one lock) |
+
 ```java
-ConcurrentHashMap<Integer, String> map = new ConcurrentHashMap<>();
-map.put(1, "a");
-map.put(2, "b");
-// While size() runs, another thread adds 3
-System.out.println(map.size()); // might be 2, 3, or more
-```
-Output: Non-deterministic count during concurrent modification.
-Explanation: Java 7: `size()` sums segments but doesn't lock all. Java 8+: uses `baseCount` + `counterCells`, also not fully locked.
+// synchronizedMap — must manually synchronize during iteration:
+Map<String, String> sync = Collections.synchronizedMap(new HashMap<>());
+synchronized (sync) {     // REQUIRED!
+    for (String key : sync.keySet()) { ... }
+}
 
-**Case 4 — `null` not allowed**
+// ConcurrentHashMap — no external sync needed during iteration:
+ConcurrentHashMap<String, String> chm = new ConcurrentHashMap<>();
+for (String key : chm.keySet()) { ... }  // Thread-safe automatically!
+```
+
+## 8. Atomic Operations (ConcurrentMap interface)
+
 ```java
 ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
-map.put("A", null);   // NullPointerException
-map.put(null, "B");   // NullPointerException
-```
-Output: `NullPointerException` on both.
-Explanation: `null` breaks atomicity. A thread reading `get(null)` couldn't distinguish between key absent and value-is-null.
 
-**Case 5 — `replace()` atomicity**
-```java
-ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
-map.put("A", 1);
-boolean ok = map.replace("A", 1, 100); // true (replaces 1 with 100)
-boolean fail = map.replace("A", 1, 200); // false (current is 100, not 1)
-System.out.println(ok + ", " + fail); // true, false
-```
-Output: `true, false`
-Explanation: `replace(key, oldVal, newVal)` is atomic compare-and-swap. Only succeeds if current value equals `oldVal`.
+// Atomic putIfAbsent — returns old value (null if absent)
+String existing = map.putIfAbsent("key", "value");
+// Equivalent to:
+// if (!map.containsKey("key")) map.put("key", "value");
 
-## 6. Common Mistakes
+// Atomic replace
+map.replace("key", "oldValue", "newValue");  // Only if current value matches
+
+// Atomic remove
+map.remove("key", "value");  // Only if current value matches
+
+// Java 8+ atomic compute methods:
+map.computeIfAbsent("key", k -> fetchFromDB(k));  // Lazy init (atomic!)
+map.computeIfPresent("key", (k, v) -> v + "_updated");
+map.compute("key", (k, v) -> v == null ? "default" : v + "_updated");
+map.merge("key", "newValue", (old, new) -> old + "," + new);
+```
+
+## 9. ConcurrentHashMap vs HashMap
+
+| Aspect | HashMap | ConcurrentHashMap |
+|--------|---------|------------------|
+| Thread safety | **NOT** thread-safe | **Thread-safe** |
+| Null keys | **Allowed** (one) | **NOT allowed** (throws NPE) |
+| Null values | **Allowed** | **NOT allowed** (throws NPE) |
+| Performance (single-threaded) | **Slightly faster** | ~5-10% slower (volatile overhead) |
+| Performance (multi-threaded) | **BROKEN** (resize loop) | **Excellent** |
+| Iterator | **Fail-fast** | **Fail-safe** (snapshot) |
+| Locking | None | Per-bucket synchronized + CAS |
+| Complexity | Lower | Higher |
+| When to use | Single-threaded, no concurrent access | Concurrent access from multiple threads |
+
+## 10. Common Mistakes
 
 | Mistake | Problem | Fix |
 |---------|---------|-----|
-| `get()` then `put()` expecting atomicity | Race condition between calls | Use `putIfAbsent`, `compute`, or `merge` |
-| `size()` expecting exact count | Returns approximate value | Use `mappingCount()` or accept approximation |
-| Assuming `put()` with existing key is atomic update | Concurrent puts on same key last-write-wins | Use `compute()` for atomic read-modify-write |
-| Using `Collections.synchronizedMap` | Single lock, poor concurrency | Use `ConcurrentHashMap` instead |
-| Iterating without copying | ConcurrentModification possible | Use entrySet iterator (weakly consistent) |
-| `null` keys/values | NPE at runtime | Never store null in ConcurrentHashMap |
+| Assuming compound ops are atomic | `if (!map.contains(k)) map.put(k, v)` race | Use `putIfAbsent()` or `computeIfAbsent()` |
+| Using null keys/values | NPE at runtime | Use sentinel values or separate checks |
+| Assuming size() is exact | Size changes during iteration | Use for monitoring, not decision logic |
+| Iterating and modifying | Works (fail-safe) but iteration may not see changes | Understand snapshot semantics |
 
-## 7. Production Usage
+## 11. Final 30-Second Answer
 
-**Caching with computeIfAbsent:**
-```java
-LoadingCache<String, User> cache = Caffeine...
-// Or manual with ConcurrentHashMap:
-ConcurrentHashMap<String, User> cache = new ConcurrentHashMap<>();
-User getUser(String id) {
-    return cache.computeIfAbsent(id, key -> loadFromDb(key));
-}
-```
-`computeIfAbsent` is atomic: only one thread loads, others wait and see cached result.
-
-**Rate limiting:**
-```java
-class RateLimiter {
-    private final ConcurrentHashMap<String, TokenBucket> buckets = new ConcurrentHashMap<>();
-    boolean allow(String userId, int maxTokens, long refillRate) {
-        return buckets.computeIfAbsent(userId, k -> new TokenBucket(maxTokens, refillRate)).tryConsume();
-    }
-}
-```
-
-**Spring `@Cacheable` with ConcurrentHashMap:**
-```java
-@Cacheable("users")
-public User findUser(String id) {
-    return userRepo.findById(id);
-}
-// Simple cache manager uses ConcurrentHashMap internally
-```
-
-## 8. Advanced Details
-
-- **Java 7 vs Java 8+ structure:** Java 7: `Segment<K,V>[]` (16 segments, each a mini HashMap). Java 8+: removed segments, uses `synchronized (node)` on bin head.
-- **CAS operations:** Java 8+ uses `sun.misc.Unsafe.compareAndSetObject()` for lock-free head insertion. Falls back to `synchronized` if CAS fails.
-- **Tree bins:** When bucket exceeds 8 nodes, converts to Red-Black tree (TreeNode). Reduces worst-case from O(n) to O(log n).
-- **Forwarding nodes:** During resize, some bin entries become `ForwardingNode` — pointing to new table. Threads see forwarding and help migrate.
-- **`sumCount()`:** Returns approximate `baseCount + sum(counterCells)`. Used by `size()`.
-- **`Weakly consistent iterator:`** Reflects state at/after creation. Safe for concurrent modification (no CME).
-- **`parallelStream()`:** Uses `ConcurrentHashMap` internally for reduction in parallel operations.
-
-## 9. Interview Questions And Answers
-
-### Beginner
-Q: What is ConcurrentHashMap? How is it different from `Collections.synchronizedMap()`?
-A: ConcurrentHashMap is a thread-safe Map with high concurrency. It locks only the affected bucket during writes (or uses CAS), allowing concurrent reads and writes to different buckets. `Collections.synchronizedMap()` uses a single lock for the entire map, serializing ALL operations.
-
-### Intermediate
-Q: Does `get()` in ConcurrentHashMap use locks? How does it guarantee visibility?
-A: No, `get()` does NOT acquire locks. It uses volatile reads on `table[i]` and `node.value`. The `volatile` keyword ensures visibility: writes to `value` by one thread are immediately visible to reads by other threads.
-
-### Senior
-Q: `ConcurrentHashMap` does not allow `null` keys/values. Why? What would break if it did?
-A: `null` would break atomicity guarantees:
-
-If `map.put(key, null)` were allowed:
-1. Thread A: `map.get(key)` returns `null`
-2. Thread B: cannot distinguish between "key missing" and "value is null"
-3. `putIfAbsent` logic breaks: `if (map.get(key) == null)` would be ambiguous
-
-`null` is semantically ambiguous in concurrent context. Rejecting it forces explicit non-null contract.
-
-### Tricky
-Q: You have `ConcurrentHashMap<String, Integer> counts`. Thread A calls `counts.get("x") + 1`, Thread B does the same. Final value is less than 2. Why? How do you fix it?
-A: `get()` + `+` + `put()` is NOT atomic. Two threads both read `0`, compute `1`, write `1`. Lost update.
-
-```java
-// BAD
-Integer v = counts.get("x");
-counts.put("x", v + 1); // race condition!
-
-// GOOD: atomic read-modify-write
-counts.compute("x", (k, v) -> v == null ? 1 : v + 1);
-
-// OR: atomic integer values
-ConcurrentHashMap<String, AtomicInteger> atomicCounts = new ConcurrentHashMap<>();
-atomicCounts.computeIfAbsent("x", k -> new AtomicInteger()).incrementAndGet();
-```
-
-## 10. Final 30-Second Answer
-
-ConcurrentHashMap = thread-safe HashMap with fine-grained locking (Java 8+: `synchronized` per bucket + CAS). `get()` is lock-free (volatile reads). `put()` locks affected bin. **No null keys/values.** Use `compute()`, `merge()`, `putIfAbsent()` for atomic operations — never separate `get()` + `put()`. `size()` is approximate. Java 7: segments. Java 8+: removed segments, tree bins at 8+ nodes. Weakly consistent iterator. Prefer over `Collections.synchronizedMap()`.
+ConcurrentHashMap = thread-safe HashMap with per-bucket locking (Java 8+). **get()**: lock-free (volatile reads). **put()**: CAS for empty bucket, synchronized on first node for collisions. **O(1)** average. **Null key/value**: NOT allowed (throws NPE). **Fail-safe** iterator (snapshot). **Atomic ops**: putIfAbsent, computeIfAbsent, replace, merge. **Java 7**: Segment-based (16 locks). **Java 8+**: per-bucket synchronized + tree at 8 nodes. **Much faster** than `Collections.synchronizedMap()`. Never: use null keys/values, assume compound ops are atomic.

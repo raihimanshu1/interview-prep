@@ -10,6 +10,57 @@ Misunderstanding BlockingQueue causes:
 - `IllegalStateException` from using `add()` instead of `offer()`
 - Performance bottlenecks from wrong queue type for the workload
 
+## 1.5 Collection Hierarchy
+
+
+![README_classDiagram_1](./diagrams/README_classDiagram_1.png)
+
+```mermaid
+classDiagram
+    class Queue {
+        <<interface>>
+        +offer(E) boolean
+        +poll() E
+        +peek() E
+    }
+    class BlockingQueue~E~ {
+        <<interface>>
+        +put(E) void
+        +take() E
+        +offer(E, long, TimeUnit) boolean
+        +poll(long, TimeUnit) E
+        +remainingCapacity() int
+    }
+    class ArrayBlockingQueue~E~ {
+        -Object[] items
+        -ReentrantLock lock
+        -Condition notEmpty
+        -Condition notFull
+    }
+    class LinkedBlockingQueue~E~ {
+        -Node~E~ head
+        -Node~E~ last
+        -ReentrantLock takeLock
+        -ReentrantLock putLock
+    }
+    class PriorityBlockingQueue~E~ {
+        -Object[] queue
+        -ReentrantLock lock
+        -Condition notEmpty
+    }
+    class SynchronousQueue~E~ {
+    }
+    class DelayQueue~E~ {
+    }
+    
+    Queue <|.. BlockingQueue
+    BlockingQueue <|.. ArrayBlockingQueue
+    BlockingQueue <|.. LinkedBlockingQueue
+    BlockingQueue <|.. PriorityBlockingQueue
+    BlockingQueue <|.. SynchronousQueue
+    BlockingQueue <|.. DelayQueue
+```
+
 ## 2. Basic Meaning
 
 BlockingQueue is a Queue that supports operations that wait for space to become available (when full) or for an element to appear (when empty).

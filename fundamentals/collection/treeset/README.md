@@ -4,7 +4,60 @@
 
 TreeSet is the sorted Set implementation backed by a Red-Black tree. Understanding TreeSet internals — tree structure, comparison mechanisms, and performance tradeoffs — is essential for interviews and production. In production, TreeSet is used for sorted unique collections, range queries, and maintaining ordered data. Misunderstanding TreeSet causes incorrect ordering, performance issues from poor comparators, and `ClassCastException` at runtime.
 
+## 1.5 Collection Hierarchy
+
+
+![README_classDiagram_1](./diagrams/README_classDiagram_1.png)
+
+```mermaid
+classDiagram
+    class Set {
+        <<interface>>
+        +add(E) boolean
+        +remove(Object) boolean
+        +contains(Object) boolean
+    }
+    class SortedSet {
+        <<interface>>
+        +first() E
+        +last() E
+        +subSet(E, E) SortedSet
+    }
+    class NavigableSet {
+        <<interface>>
+        +lower(E) E
+        +floor(E) E
+        +ceiling(E) E
+        +higher(E) E
+        +pollFirst() E
+        +pollLast() E
+    }
+    class AbstractSet {
+        <<abstract>>
+    }
+    class TreeSet~E~ {
+        -NavigableMap~E, Object~ m
+        +add(E) boolean
+        +contains(Object) boolean
+        +remove(Object) boolean
+    }
+    class TreeMap~K,V~ {
+        -Entry~K,V~ root
+        +put(K,V) V
+        +get(Object) V
+    }
+    
+    Set <|.. SortedSet
+    SortedSet <|.. NavigableSet
+    AbstractSet <|-- TreeSet
+    NavigableSet <|.. TreeSet
+    TreeSet ..> TreeMap : backed by
+    Cloneable <|.. TreeSet
+    Serializable <|.. TreeSet
+```
+
 **Interview value:** High. TreeSet tests understanding of Red-Black trees, Comparable vs Comparator, and tree-based collections.
+</remove>
 
 ## 2. Basic Meaning
 

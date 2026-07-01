@@ -31,9 +31,223 @@ A transaction is a sequence of database operations executed as a single logical 
 | Repeatable Read | Prevented | Prevented | Possible (MySQL) / Prevented (PostgreSQL) |
 | Serializable | Prevented | Prevented | Prevented |
 
+
+Think of two transactions running at same time:
+
+```
+Transaction A = Reading data
+Transaction B = Changing data
+```
+
+## 1. Dirty Read (Reading uncommitted data)
+
+Problem: **A reads B's changes before B commits**
+
+Example:
+
+Initial balance:
+
+```
+Account balance = $100
+```
+
+Transaction B:
+
+```sql
+UPDATE account
+SET balance = 0;
+```
+
+(B has not committed yet)
+
+Transaction A:
+
+```sql
+SELECT balance FROM account;
+```
+
+Gets:
+
+```
+$0
+```
+
+Now B does:
+
+```sql
+ROLLBACK;
+```
+
+Database returns:
+
+```
+balance = $100
+```
+
+Problem:
+
+A saw data that never actually existed.
+
+This happens in:
+
+```
+READ UNCOMMITTED
+```
+
+---
+
+## 2. Non-repeatable Read (Same row, different value)
+
+Problem: **A reads committed data, but B changes it later**
+
+Initial:
+
+```
+Order status = PENDING
+```
+
+Transaction A:
+
+```sql
+SELECT status FROM orders;
+```
+
+Gets:
+
+```
+PENDING
+```
+
+Transaction B:
+
+```sql
+UPDATE orders
+SET status='SHIPPED';
+
+COMMIT;
+```
+
+Transaction A runs again:
+
+```sql
+SELECT status FROM orders;
+```
+
+Gets:
+
+```
+SHIPPED
+```
+
+Same query, same transaction, different value.
+
+Problem:
+
+The row changed.
+
+This happens in:
+
+```
+READ COMMITTED
+```
+
+---
+
+## 3. Phantom Read (Different rows)
+
+Problem: **A runs same query but number of rows changes**
+
+Initial:
+
+Orders table:
+
+```
+1 PENDING
+2 PENDING
+3 SHIPPED
+```
+
+Transaction A:
+
+```sql
+SELECT *
+FROM orders
+WHERE status='PENDING';
+```
+
+Gets:
+
+```
+1
+2
+```
+
+Transaction B:
+
+```sql
+INSERT INTO orders
+VALUES(4,'PENDING');
+
+COMMIT;
+```
+
+Transaction A again:
+
+```sql
+SELECT *
+FROM orders
+WHERE status='PENDING';
+```
+
+Gets:
+
+```
+1
+2
+4
+```
+
+Problem:
+
+New row appeared (phantom).
+
+---
+
+## Simple Difference
+
+| Issue               | What changed?             | Example                      |
+| ------------------- | ------------------------- | ---------------------------- |
+| Dirty Read          | Uncommitted value         | Read balance before rollback |
+| Non-repeatable Read | Same row value changed    | PENDING → SHIPPED            |
+| Phantom Read        | New/deleted rows appeared | 5 orders → 6 orders          |
+
+Memory trick:
+
+* **Dirty = I saw something that was never saved**
+* **Non-repeatable = Same row, different value**
+* **Phantom = Same query, different rows**
+
+Isolation levels prevent them:
+
+```
+READ UNCOMMITTED
+    ↓
+READ COMMITTED
+    ↓
+REPEATABLE READ
+    ↓
+SERIALIZABLE
+```
+
+Higher isolation = more protection but less concurrency.
+
+Recap - 
+
 - **Dirty read**: Transaction A reads uncommitted data from Transaction B. If B rolls back, A has read data that never existed. Example: A reads a user's balance as $0 (B is transferring money out), then B rolls back. A incorrectly assumes the user is bankrupt.
 - **Non-repeatable read**: Transaction A reads the same row twice and gets different values because Transaction B updated and committed between the two reads. Example: A reads order status as "PENDING", B changes to "SHIPPED" and commits, A reads again — sees "SHIPPED" in the same transaction.
 - **Phantom read**: Transaction A runs the same query twice and gets different rows because Transaction B inserted or deleted rows between the two executions. Example: A queries `SELECT * FROM orders WHERE status = 'PENDING'` and gets 5 rows. B inserts a new pending order and commits. A queries again — now 6 rows.
+
+
 
 **Database defaults:**
 - PostgreSQL: READ COMMITTED (default), REPEATABLE READ (snapshot isolation, prevents phantoms), SERIALIZABLE (true serialization)
@@ -236,6 +450,134 @@ generateReport(): readOnly=true skips dirty checking, saves CPU
 
 ## 4. What Happens Internally
 
+### Mermaid Diagrams
+
+#### ACID Properties
+```mermaid
+graph TD
+    A[Transaction] --> B[Atomicity]
+    A --> C[Consistency]
+    A --> D[Isolation]
+    A --> E[Durability]
+    
+    B --> B1["All operations succeed (commit)"]
+    B --> B2["Or all fail (rollback)"]
+    
+    C --> C1["DB constraints preserved"]
+    C --> C2["Application invariants maintained"]
+    
+    D --> D1["Concurrent txns don't interfere"]
+    D --> D2["MVCC or locking"]
+    
+    E --> E1["Committed data survives crashes"]
+    E --> E2["WAL / Redo log"]
+```
+
+#### PostgreSQL MVCC Flow
+```mermaid
+sequenceDiagram
+    participant T1 as Transaction A (READ COMMITTED)
+    participant DB as PostgreSQL
+    participant T2 as Transaction B (concurrent)
+
+    T1->>DB: SELECT balance WHERE id=1
+    DB-->>T1: Sees latest COMMITTED: $100
+    
+    T2->>DB: UPDATE balance=balance-50 WHERE id=1
+    Note over DB: Creates NEW tuple<br/>balance=$50 (uncommitted)
+    Note over DB: Old tuple: balance=$100 (still visible to others)
+    T2->>DB: COMMIT
+    Note over DB: New tuple becomes visible
+    
+    T1->>DB: SELECT balance WHERE id=1 (second read)
+    DB-->>T1: Now sees $50<br/>(NON-REPEATABLE READ!)
+    
+    Note over T1,DB: In REPEATABLE READ mode:<br/>T1 would see $100 both times<br/>(same snapshot throughout)
+```
+
+#### Deadlock Timeline
+```mermaid
+sequenceDiagram
+    participant Tx1 as Transaction 1
+    participant DB as Database
+    participant Tx2 as Transaction 2
+
+    Tx1->>DB: UPDATE accounts SET balance=... WHERE id=1
+    Note over DB: Row 1 LOCKED by Tx1
+    
+    Tx2->>DB: UPDATE accounts SET balance=... WHERE id=2
+    Note over DB: Row 2 LOCKED by Tx2
+    
+    Tx1->>DB: UPDATE accounts SET balance=... WHERE id=2
+    Note over DB: Tx1 WAITS for Tx2 (row 2 locked)
+    
+    Tx2->>DB: UPDATE accounts SET balance=... WHERE id=1
+    Note over DB: Tx2 WAITS for Tx1 (row 1 locked)<br/>DEADLOCK!
+    
+    DB-->>Tx2: ERROR: deadlock detected<br/>KILLS Tx2
+    Note over DB: Tx1's query on row 2 now SUCCEEDS
+    Tx1->>DB: COMMIT
+```
+
+#### Transaction Propagation
+```mermaid
+stateDiagram-v2
+    [*] --> REQUIRED: Current method call
+    
+    REQUIRED --> JoinExisting: Transaction exists
+    REQUIRED --> CreateNew: No transaction
+    
+    REQUIRES_NEW --> SuspendExisting: Transaction exists
+    REQUIRES_NEW --> CreateNew: No transaction
+    
+    NESTED --> CreateSavepoint: Transaction exists
+    NESTED --> CreateNew: No transaction
+    
+    MANDATORY --> JoinExisting: Transaction exists
+    MANDATORY --> ThrowException: No transaction
+    
+    NEVER --> JoinExisting: No transaction exists
+    NEVER --> ThrowException: Transaction exists
+    
+    SUPPORTS --> JoinExisting: Transaction exists
+    SUPPORTS --> RunNonTransactional: No transaction
+    
+    NOT_SUPPORTED --> SuspendExisting: Transaction exists
+    NOT_SUPPORTED --> RunNonTransactional: No transaction
+```
+
+#### Saga Pattern (Orchestration)
+```mermaid
+sequenceDiagram
+    participant Saga as Saga Orchestrator
+    participant Inv as Inventory Service
+    participant Pay as Payment Service
+    participant Ship as Shipping Service
+
+    Saga->>Inv: 1. Reserve inventory
+    Inv-->>Saga: Reserved
+    
+    Saga->>Pay: 2. Charge payment
+    Pay-->>Saga: Charged
+    
+    Saga->>Ship: 3. Schedule shipping
+    Ship-->>Saga: Scheduled
+    
+    Note over Saga: All succeeded → Order created
+    
+    alt Step 2 fails (Payment)
+        Saga->>Inv: COMPENSATE: Release inventory
+        Inv-->>Saga: Released
+        Note over Saga: Saga rolled back
+    else Step 3 fails (Shipping)
+        Saga->>Pay: COMPENSATE: Refund payment
+        Pay-->>Saga: Refunded
+        Saga->>Inv: COMPENSATE: Release inventory
+        Inv-->>Saga: Released
+        Note over Saga: Saga rolled back
+    end
+```
+
 **PostgreSQL MVCC (Multi-Version Concurrency Control):**
 
 PostgreSQL implements isolation via tuple versioning. Each row can have multiple versions (tuples). When a transaction updates a row, it creates a NEW tuple instead of overwriting the old one. Old tuples remain until they are no longer visible to any active transaction and are cleaned up by VACUUM.
@@ -404,7 +746,186 @@ Explanation: Serializable isolation uses optimistic conflict detection. PostgreS
 | Mixed data sources without XA | No cross-resource atomicity | Consider Saga pattern for distributed transactions |
 | `self.invoke()` pattern with `@Transactional` | REQUIRES_NEW ignored | Inject self reference via `@Autowired` |
 
-## 7. Production Usage
+## 7. Interview Traps & Frequently Asked Questions
+
+### 🔴 Critical Traps
+
+**Trap 1: Spring proxy cannot intercept same-class method calls**
+```java
+@Service
+public class OrderService {
+    @Transactional
+    public void processOrder(Long id) {
+        updateInventory(id); // Self-invocation — bypasses proxy!
+    }
+    
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateInventory(Long id) {
+        // Expected: new transaction
+        // Actual: joins processOrder()'s transaction
+        // REQUIRES_NEW is SILENTLY IGNORED
+    }
+}
+```
+Why: Spring creates a proxy class that wraps `OrderService`. Inside `processOrder()`, `this.updateInventory()` calls the raw object directly, not the proxy. The proxy never sees the call, so `@Transactional` is ignored.
+
+Fix options:
+1. Self-injection: `@Autowired private OrderService self;` → `self.updateInventory()` (goes through proxy)
+2. Extract `updateInventory()` into a separate `@Service` bean
+3. Use AspectJ compile-time weaving (avoids proxy entirely)
+
+**Trap 2: Exception caught inside @Transactional**
+```java
+@Transactional
+public void createOrder(Order order) {
+    try {
+        orderRepo.save(order);
+        emailService.send(order.getEmail()); // throws EmailException
+    } catch (Exception e) {
+        log.error("Email failed"); // Transaction still commits!
+    }
+}
+```
+❌ Problem: If you catch the exception inside the method, Spring never sees it → Spring marks for rollback only when an exception **propagates out** of the method. The order persists even though email failed.
+
+Fix:
+```java
+} catch (Exception e) {
+    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+    throw e; // OR rethrow to let Spring handle it
+}
+```
+
+**Trap 3: Checked exceptions don't roll back by default**
+```java
+@Transactional
+public void transfer(...) throws InsufficientFundsException { // checked exception
+    // ... 
+} // Default: only RuntimeException rolls back
+```
+Spring rolls back only on `RuntimeException` and `Error` by default. Checked exceptions don't trigger rollback.
+
+Fix: `@Transactional(rollbackFor = {InsufficientFundsException.class, Exception.class})` or wrap checked exception in `RuntimeException`.
+
+**Trap 4: Isolation level disclaimer ignored (MySQL vs PostgreSQL)**
+```java
+@Transactional(isolation = Isolation.REPEATABLE_READ)
+// MySQL: prevents phantoms via next-key locking
+// PostgreSQL REPEATABLE READ = snapshot isolation (prevents phantoms, allows serialization anomalies)
+// But PostgreSQL's SERIALIZABLE also uses snapshot isolation with SSI detection
+```
+❌ Common mistake: Assuming all databases behave identically. MySQL InnoDB REPEATABLE READ uses locks (stronger). PostgreSQL REPEATABLE READ uses MVCC snapshots.
+
+**Trap 5: LazyInitializationException from closed transaction**
+```java
+@Transactional(readOnly = true)
+public Order getOrder(Long id) {
+    Order order = em.find(Order.class, id);
+    // order.getItems() is LAZY collection
+} // Transaction closes, EntityManager closes
+
+// Outside the service:
+Set<Item> items = order.getItems(); // ❌ LazyInitializationException!
+```
+Fix: Fetch join in query, or keep transaction open longer, or use DTO projection.
+
+### 📋 Common Interview Questions
+
+**Q: Explain transaction propagation with examples.**
+
+A: Propagation determines what happens when a transactional method calls another transactional method.
+
+- **REQUIRED** *(default)*: Join existing if present, else create new.
+```java
+// Controller → @Transactional(REQUIRED) → Service
+// Already in a transaction → joins it
+// No outer transaction → creates new one
+```
+
+- **REQUIRES_NEW**: Always suspend outer and create new.
+```java
+@Transactional
+public void placeOrder() {
+    orderRepo.save(order);
+    auditService.log("ORDER_PLACED"); // REQUIRES_NEW → independent
+    paymentService.charge(); // REQUIRES_NEW → independent
+} // rollback here → orderSave rolls back, but audit and payment COMMIT
+```
+
+- **NESTED**: Uses savepoint within existing transaction.
+```java
+@Transactional
+public void createUser() {
+    userRepo.save(user);
+    try {
+        profileService.create(); // NESTED → savepoint
+    } catch (Exception e) {
+        // Profile rolls back to savepoint, but USER is still saved
+    }
+}
+```
+
+- **MANDATORY**: Must run inside existing transaction, else throw `IllegalTransactionStateException`.
+- **NEVER**: Must NOT run inside transaction, else throw.
+- **SUPPORTS**: Join if exists, else run non-transactionally.
+- **NOT_SUPPORTED**: Suspend if exists, run non-transactionally.
+
+**Quick comparison table:**
+
+| Propagation | Outer tx exists? | Behavior |
+|------------|------------------|----------|
+| REQUIRED | Yes | Join outer |
+| REQUIRED | No | Create new |
+| REQUIRES_NEW | Yes | Suspend outer + create new (parallel) |
+| REQUIRES_NEW | No | Create new |
+| NESTED | Yes | Savepoint (partial rollback possible) |
+| NESTED | No | Create new |
+| MANDATORY | Yes | Join outer |
+| MANDATORY | No | Throw exception |
+
+**Q: How does Spring create a transaction proxy?**
+
+A: At startup, Spring scans for `@Transactional` methods. For each bean, it creates a proxy (CGLIB by default, or JDK dynamic proxy if the class implements an interface). When you call `orderService.placeOrder()`, the proxy intercepts the call, starts a transaction, invokes the real method, and then commits or rolls back before returning.
+
+**Q: Why does self-invocation break @Transactional?**
+
+A: Self-invocation calls go directly to the object's method, not the proxy. The proxy intercepts only external calls. Inside `myMethod()`, calling `this.otherMethod()` bypasses the proxy entirely. Spring AOP uses proxy-based weaving by default (not AspectJ compile-time weaving), which cannot intercept calls within the same object.
+
+**Q: When would you use REQUIRES_NEW?**
+
+A: For operations that **must commit independently** of the caller's transaction:
+- Audit logging: even if user creation fails, the audit log should persist
+- Notification sending: don't roll back an email just because business logic failed
+- Compensation logs in Saga pattern: record each step regardless of later failures
+
+**Q: What happens if a REQUIRES_NEW method is called inside a REQUIRED method and the outer rolls back?**
+
+A: The inner transaction **already committed** (if it completed successfully). It is unaffected by the outer rollback. The inner transaction's changes are permanent.
+
+**Q: What is a savepoint in NESTED transactions?**
+
+A: A savepoint is a marker inside an existing transaction. If a NESTED method fails, only the work done after the savepoint is rolled back, not the entire transaction. Useful for partial rollback without ending the outer transaction.
+
+**Q: What does readOnly=true actually do?**
+
+A: 
+- Hibernate: sets flush mode to MANUAL (skips dirty checking during the transaction — no performance hit tracking changes)
+- Database driver: hints that the transaction won't modify data
+- Connection pool: may route to read-only replica
+Important: `readOnly=true` on a method that writes data will cause `TransactionRequiredException` or silent failure depending on JPA provider.
+
+**Q: How do you handle LazyInitializationException?**
+
+A: 
+1. Fetch join in query: `SELECT o FROM Order o JOIN FETCH o.items WHERE o.id = :id`
+2. Open Session in View pattern (OSIV): keeps EntityManager open for the whole HTTP request (`spring.jpa.open-in-view=true` by default in Spring Boot)
+3. DTO projection: fetch exactly what you need
+4. EntityGraph: optimize fetching strategies
+
+### 🎯 One-Liner Interview Answers
+
+"Transaction proxy intercepts external calls — self-invocation bypasses it. **Propagation**: REQUIRED joins, REQUIRES_NEW suspends+creates, NESTED uses savepoint. **Isolation**: Read Committed prevents dirty reads (default PG), Repeatable Read prevents dirty+non-repeatable (default MySQL), Serializable prevents all but uses locking/MVCC. **Proxy works via CGLIB subclassing**: Spring wraps your bean, intercepts `@Transactional` methods, opens connection, disables autoCommit, commits on success or rolls back on exception. Traps: catching exception inside `@Transactional` prevents rollback, `readOnly=true` on writes fails, REQUIRES_NEW self-call ignored, self-invocation bypasses proxy."
+
 
 **Payment processing with pessimistic locking:**
 ```java

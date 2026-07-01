@@ -1,0 +1,15 @@
+graph TD
+    subgraph "Node[] table (size = capacity, default 16)"
+        T0[0] --> N0["null"]
+        T1[1] --> N1["Node{hash=1, key='a', value=1}"]
+        N1 --> N1N["Node{hash=1, key='c', value=3}<br/>linked list (collision)"]
+        T2[2] --> N2["null"]
+        T3[3] --> T3T["TreeNode{key='x', value=100}<br/>🔴⚫ Red-Black Tree<br/>(≥8 nodes)"]
+        T4[4] --> N4["Node{hash=4, key='z', value=26}"]
+        T5[5] --> N5["null"]
+    end
+    
+    subgraph "Legend"
+        L1[1-7 nodes → Linked List]
+        L2[≥8 nodes + capacity ≥ 64 → Tree]
+    end

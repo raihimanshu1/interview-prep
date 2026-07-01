@@ -1,0 +1,27 @@
+classDiagram
+    class List {
+        <<interface>>
+        +get(int) E
+        +add(E) boolean
+        +remove(Object) boolean
+    }
+    class AbstractList {
+        <<abstract>>
+    }
+    class CopyOnWriteArrayList~E~ {
+        -volatile Object[] array
+        +add(E) boolean
+        +get(int) E
+        +set(int, E) E
+        +remove(Object) boolean
+    }
+    class CopyOnWriteArraySet~E~ {
+        -CopyOnWriteArrayList~E~ al
+    }
+    
+    List <|.. AbstractList
+    AbstractList <|-- CopyOnWriteArrayList
+    CopyOnWriteArrayList ..> CopyOnWriteArraySet : backed by
+    Cloneable <|.. CopyOnWriteArrayList
+    Serializable <|.. CopyOnWriteArrayList
+    RandomAccess <|.. CopyOnWriteArrayList

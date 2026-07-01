@@ -10,6 +10,41 @@ Misunderstanding CopyOnWriteArrayList causes:
 - Stale data reads (snapshot semantics)
 - Using it for write-heavy workloads (wrong tool)
 
+## 1.5 Collection Hierarchy
+
+
+![README_classDiagram_1](./diagrams/README_classDiagram_1.png)
+
+```mermaid
+classDiagram
+    class List {
+        <<interface>>
+        +get(int) E
+        +add(E) boolean
+        +remove(Object) boolean
+    }
+    class AbstractList {
+        <<abstract>>
+    }
+    class CopyOnWriteArrayList~E~ {
+        -volatile Object[] array
+        +add(E) boolean
+        +get(int) E
+        +set(int, E) E
+        +remove(Object) boolean
+    }
+    class CopyOnWriteArraySet~E~ {
+        -CopyOnWriteArrayList~E~ al
+    }
+    
+    List <|.. AbstractList
+    AbstractList <|-- CopyOnWriteArrayList
+    CopyOnWriteArrayList ..> CopyOnWriteArraySet : backed by
+    Cloneable <|.. CopyOnWriteArrayList
+    Serializable <|.. CopyOnWriteArrayList
+    RandomAccess <|.. CopyOnWriteArrayList
+```
+
 ## 2. Basic Meaning
 
 CopyOnWriteArrayList implements `List` with thread-safe snapshot-style iteration. On every structural modification (add/remove/set), it creates a new copy of the entire internal array. Iterators iterate over the snapshot taken at iterator creation time — they never throw `ConcurrentModificationException`.

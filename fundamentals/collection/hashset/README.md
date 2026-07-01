@@ -10,6 +10,43 @@ Misunderstanding HashSet causes:
 - Performance degradation from poor hashCode distribution
 - Memory leaks from retained references in backing HashMap
 
+## 1.5 Collection Hierarchy
+
+
+![README_classDiagram_1](./diagrams/README_classDiagram_1.png)
+
+```mermaid
+classDiagram
+    class Set {
+        <<interface>>
+        +add(E) boolean
+        +remove(Object) boolean
+        +contains(Object) boolean
+    }
+    class AbstractSet {
+        <<abstract>>
+    }
+    class HashSet~E~ {
+        -HashMap~E, Object~ map
+        +add(E) boolean
+        +contains(Object) boolean
+        +remove(Object) boolean
+    }
+    class LinkedHashSet~E~ {
+    }
+    class HashMap~K,V~ {
+        +put(K,V) V
+        +get(Object) V
+    }
+    
+    Set <|.. AbstractSet
+    AbstractSet <|-- HashSet
+    HashSet <|-- LinkedHashSet
+    HashSet ..> HashMap : backed by
+    Cloneable <|.. HashSet
+    Serializable <|.. HashSet
+```
+
 ## 2. Basic Meaning
 
 HashSet is an implementation of the `Set` interface backed by a `HashMap` instance. It stores unique elements — no duplicates allowed. Uniqueness is determined by `hashCode()` and `equals()`.

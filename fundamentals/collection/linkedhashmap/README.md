@@ -10,6 +10,42 @@ Misunderstanding LinkedHashMap causes:
 - Performance issues from access-order iteration overhead
 - Confusion about when to use vs HashMap
 
+## 1.5 Collection Hierarchy
+
+
+![README_classDiagram_1](./diagrams/README_classDiagram_1.png)
+
+```mermaid
+classDiagram
+    class Map {
+        <<interface>>
+        +put(K,V) V
+        +get(Object) V
+    }
+    class HashMap~K,V~ {
+        -Node~K,V~[] table
+        +put(K,V) V
+        +get(Object) V
+    }
+    class LinkedHashMap~K,V~ {
+        -Entry~K,V~ head
+        -Entry~K,V~ tail
+        -boolean accessOrder
+        +get(Object) V
+        +removeEldestEntry(Map.Entry) boolean
+    }
+    class Entry~K,V~ {
+        -K key
+        -V value
+        -Entry~K,V~ before
+        -Entry~K,V~ after
+    }
+    
+    Map <|.. HashMap
+    HashMap <|-- LinkedHashMap
+    LinkedHashMap "1" *--> "0..*" Entry : doubly-linked
+```
+
 ## 2. Basic Meaning
 
 LinkedHashMap extends HashMap. It adds a doubly-linked list through entries to maintain order.

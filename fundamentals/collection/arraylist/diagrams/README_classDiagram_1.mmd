@@ -1,0 +1,44 @@
+classDiagram
+    class Iterable {
+        <<interface>>
+        +iterator() Iterator~E~
+        +forEach(Consumer) void
+    }
+    class Collection {
+        <<interface>>
+        +size() int
+        +add(E) boolean
+        +remove(Object) boolean
+        +contains(Object) boolean
+    }
+    class List {
+        <<interface>>
+        +get(int) E
+        +set(int, E) E
+        +add(int, E) void
+        +remove(int) E
+        +indexOf(Object) int
+    }
+    class AbstractList {
+        <<abstract>>
+    }
+    class ArrayList {
+        +DEFAULT_CAPACITY : int = 10
+        -elementData : Object[]
+        +ArrayList()
+        +ArrayList(int)
+        +ensureCapacity(int) void
+        +trimToSize() void
+    }
+    class RandomAccess {
+        <<interface>>
+        <<marker>>
+    }
+    
+    Iterable <|-- Collection
+    Collection <|-- List
+    List <|.. AbstractList
+    AbstractList <|-- ArrayList
+    ArrayList ..|> RandomAccess
+    ArrayList ..|> Cloneable
+    ArrayList ..|> Serializable

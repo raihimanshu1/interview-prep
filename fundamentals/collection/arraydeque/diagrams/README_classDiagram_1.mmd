@@ -1,0 +1,37 @@
+classDiagram
+    class Queue {
+        <<interface>>
+        +offer(E) boolean
+        +poll() E
+        +peek() E
+    }
+    class Deque {
+        <<interface>>
+        +addFirst(E) void
+        +addLast(E) void
+        +removeFirst() E
+        +removeLast() E
+        +getFirst() E
+        +getLast() E
+    }
+    class AbstractCollection {
+        <<abstract>>
+    }
+    class ArrayDeque~E~ {
+        -Object[] elements
+        -int head
+        -int tail
+        +addFirst(E) void
+        +addLast(E) void
+        +pollFirst() E
+        +pollLast() E
+        +push(E) void
+        +pop() E
+    }
+    
+    Queue <|.. Deque
+    AbstractCollection <|-- ArrayDeque
+    Deque <|.. ArrayDeque
+    Queue <|.. ArrayDeque
+    Cloneable <|.. ArrayDeque
+    Serializable <|.. ArrayDeque

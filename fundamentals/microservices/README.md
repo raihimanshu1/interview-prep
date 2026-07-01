@@ -267,6 +267,115 @@ Distributed tracing:
 
 ## 4. Patterns Deep Dive
 
+### Mermaid Diagrams
+
+#### Circuit Breaker State Machine
+```mermaid
+stateDiagram-v2
+    [*] --> CLOSED: System starts
+    
+    CLOSED --> OPEN: Failure rate > threshold<br/>(e.g., 5 of 10 requests fail)
+    
+    OPEN --> HALF_OPEN: After wait duration<br/>(e.g., 30 seconds)
+    
+    HALF_OPEN --> CLOSED: Probe succeeds<br/>(e.g., 3 of 3 probes pass)
+    HALF_OPEN --> OPEN: Probe fails<br/>(e.g., 1 of 3 probes fails)
+    
+    note right of CLOSED: Normal operation<br/>Requests pass through
+    note right of OPEN: Fail fast<br/>Requests rejected immediately
+    note right of HALF_OPEN: Probing for recovery<br/>Limited requests allowed
+```
+
+#### Saga Orchestration (Order Creation)
+```mermaid
+sequenceDiagram
+    participant S as Saga Orchestrator
+    participant I as Inventory Service
+    participant P as Payment Service
+    participant Sh as Shipping Service
+    participant DLQ as Dead Letter Queue
+
+    S->>I: 1. reserve(productId)
+    I-->>S: reserved
+    
+    S->>P: 2. charge(userId, amount)
+    alt Payment Success
+        P-->>S: charged
+    else Payment Failed
+        P-->>S: FAILED
+        S->>I: COMPENSATE: release(productId)
+        I-->>S: released
+        S-->>Client: Order failed - payment issue
+    end
+    
+    S->>Sh: 3. schedule(orderId)
+    alt Shipping Success
+        Sh-->>S: scheduled
+        S-->>Client: Order created successfully!
+    else Shipping Failed
+        Sh-->>S: FAILED
+        S->>P: COMPENSATE: refund(userId, amount)
+        P-->>S: refunded
+        S->>I: COMPENSATE: release(productId)
+        I-->>S: released
+        S-->>Client: Order failed - shipping issue
+    end
+    
+    Note over S,DLQ: After max retries → send to DLQ for manual handling
+```
+
+#### Saga Choreography (Event-driven)
+```mermaid
+sequenceDiagram
+    participant O as Order Service
+    participant I as Inventory Service
+    participant P as Payment Service
+    participant Sh as Shipping Service
+    participant K as Kafka
+    participant DLQ as Dead Letter Topic
+
+    O->>K: OrderCreated(productId, userId, amount)
+    
+    K->>I: OrderCreated
+    I->>I: reserve(productId)
+    
+    alt Success
+        I->>K: InventoryReserved(orderId)
+    else Failure (Out of Stock)
+        I->>K: InventoryFailed(orderId, reason)
+        K->>O: InventoryFailed
+        O->>O: Cancel order
+    end
+    
+    K->>P: InventoryReserved
+    P->>P: charge(userId, amount)
+    
+    alt Success
+        P->>K: PaymentCharged(orderId)
+    else Failure
+        P->>K: PaymentFailed(orderId)
+        K->>I: PaymentFailed → Compensate!
+        I->>I: release(productId)
+        I->>K: InventoryReleased(orderId)
+    end
+    
+    K->>Sh: PaymentCharged
+    Sh->>Sh: schedule(orderId)
+    
+    alt Success
+        Sh->>K: Shipped(orderId)
+    else Failure
+        Sh->>K: ShippingFailed(orderId)
+        K->>P: ShippingFailed → Compensate!
+        P->>P: refund(userId, amount)
+        P->>K: Refunded(orderId)
+        K->>I: Refunded → Compensate!
+        I->>I: release(productId)
+    end
+```
+
+| Pattern | Description | When to Use |
+
 | Pattern | Description | When to Use |
 |---------|-------------|-------------|
 | **API Gateway** | Single entry point for all external requests. Routes to services, handles auth, rate limiting, aggregation. | When you have multiple services and want a single URL for clients. Reduces client complexity. |

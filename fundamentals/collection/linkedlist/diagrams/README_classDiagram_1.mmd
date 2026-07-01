@@ -1,0 +1,52 @@
+classDiagram
+    class Iterable {
+        <<interface>>
+    }
+    class Collection {
+        <<interface>>
+    }
+    class List {
+        <<interface>>
+        +get(int) E
+        +add(int, E) void
+    }
+    class Deque {
+        <<interface>>
+        +addFirst(E) void
+        +addLast(E) void
+        +removeFirst() E
+        +removeLast() E
+    }
+    class Queue {
+        <<interface>>
+        +offer(E) boolean
+        +poll() E
+        +peek() E
+    }
+    class AbstractSequentialList {
+        <<abstract>>
+    }
+    class LinkedList {
+        -Node~E~ first
+        -Node~E~ last
+        -int size
+        +addFirst(E) void
+        +addLast(E) void
+        +getFirst() E
+        +getLast() E
+    }
+    class Node~E~ {
+        -E item
+        -Node~E~ next
+        -Node~E~ prev
+    }
+    
+    Iterable <|-- Collection
+    Collection <|-- List
+    List <|.. AbstractSequentialList
+    AbstractSequentialList <|-- LinkedList
+    Queue <|.. LinkedList
+    Deque <|.. LinkedList
+    LinkedList "1" *--> "0..*" Node : contains
+    Node --> Node : next
+    Node --> Node : prev

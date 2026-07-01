@@ -10,6 +10,51 @@ Misunderstanding ArrayDeque causes:
 - Confusion between addFirst/addLast vs push/pop
 - IndexOutOfBounds when treating as random-access list
 
+## 1.5 Collection Hierarchy
+
+
+![README_classDiagram_1](./diagrams/README_classDiagram_1.png)
+
+```mermaid
+classDiagram
+    class Queue {
+        <<interface>>
+        +offer(E) boolean
+        +poll() E
+        +peek() E
+    }
+    class Deque {
+        <<interface>>
+        +addFirst(E) void
+        +addLast(E) void
+        +removeFirst() E
+        +removeLast() E
+        +getFirst() E
+        +getLast() E
+    }
+    class AbstractCollection {
+        <<abstract>>
+    }
+    class ArrayDeque~E~ {
+        -Object[] elements
+        -int head
+        -int tail
+        +addFirst(E) void
+        +addLast(E) void
+        +pollFirst() E
+        +pollLast() E
+        +push(E) void
+        +pop() E
+    }
+    
+    Queue <|.. Deque
+    AbstractCollection <|-- ArrayDeque
+    Deque <|.. ArrayDeque
+    Queue <|.. ArrayDeque
+    Cloneable <|.. ArrayDeque
+    Serializable <|.. ArrayDeque
+```
+
 ## 2. Basic Meaning
 
 ArrayDeque is a resizable circular array implementation of Deque (double-ended queue). No null elements allowed. Grows by 1.5x when full.

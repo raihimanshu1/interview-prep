@@ -354,6 +354,148 @@ GET /api/public/info
 
 ## 4. What Happens Internally
 
+### Mermaid Diagrams
+
+#### Authentication Flow (Username/Password)
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant F as UsernamePasswordAuthFilter
+    participant AM as AuthenticationManager
+    participant PM as ProviderManager
+    participant DAO as DaoAuthenticationProvider
+    participant UDS as UserDetailsService
+    participant PE as PasswordEncoder
+    participant SC as SecurityContextHolder
+
+    C->>F: POST /login (email+password)
+    F->>AM: authenticate(UsernamePasswordToken)
+    AM->>PM: delegate authentication
+    PM->>DAO: authenticate(token)
+    DAO->>UDS: loadUserByUsername(email)
+    UDS-->>DAO: UserDetails (hash, roles)
+    DAO->>PE: matches(rawPassword, hash)
+    PE-->>DAO: true/false
+    alt Password matches
+        DAO-->>PM: UsernamePasswordToken(authenticated)
+        PM-->>AM: authenticated token
+        AM-->>F: Authentication result
+        F->>SC: setAuthentication(auth)
+        SC-->>F: stored in thread-local
+        F-->>C: 200 OK + session/token
+    else Password wrong
+        DAO-->>PM: throw BadCredentialsException
+        PM-->>AM: exception
+        AM-->>F: AuthenticationException
+        F-->>C: 401 Unauthorized
+    end
+```
+
+#### Spring Security Filter Chain
+```mermaid
+graph LR
+    A[Request] --> B[SecurityContextPersistenceFilter]
+    B --> C[LogoutFilter]
+    C --> D[UsernamePasswordAuthFilter]
+    D --> E[BasicAuthenticationFilter]
+    E --> F[RequestCacheAwareFilter]
+    F --> G[SecurityContextHolderAwareFilter]
+    G --> H[AnonymousAuthenticationFilter]
+    H --> I[SessionManagementFilter]
+    I --> J[ExceptionTranslationFilter]
+    J --> K[FilterSecurityInterceptor]
+    K --> L[Controller]
+    
+    J -.-> M{Access Denied?}
+    M -->|Yes| N[403 Forbidden]
+    M -->|No| L
+```
+
+#### JWT Authentication Flow
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant JWT as JwtAuthFilter
+    participant SC as SecurityContextHolder
+    participant FSI as FilterSecurityInterceptor
+    participant Ctrl as Controller
+
+    C->>JWT: GET /api/resource<br/>Authorization: Bearer <token>
+    
+    JWT->>JWT: Extract token from header
+    JWT->>JWT: Validate signature (HMAC/RSA)
+    JWT->>JWT: Check expiration
+    
+    alt Valid token
+        JWT->>JWT: Extract claims (userId, roles)
+        JWT->>SC: setAuthentication(UsernamePasswordToken)
+        JWT->>FSI: chain.doFilter()
+        FSI->>FSI: Check authorization rules
+        alt Authorized
+            FSI->>Ctrl: Request reaches controller
+            Ctrl-->>C: 200 OK + Response
+        else Forbidden
+            FSI-->>C: 403 Forbidden
+        end
+    else Invalid/Expired token
+        JWT-->>C: 401 Unauthorized
+    end
+```
+
+#### CSRF Attack & Prevention
+```mermaid
+sequenceDiagram
+    participant U as User (logged in)
+    participant B as Browser
+    participant A as Attacker's Site
+    participant S as Bank Server
+
+    Note over U,S: WITHOUT CSRF protection
+    U->>B: bank.com login
+    B->>S: POST /login
+    S-->>B: session cookie
+    U->>A: Visits attacker's page
+    A->>B: <img src="bank.com/transfer?to=attacker&amount=1000">
+    B->>S: GET /transfer (with session cookie!)
+    S->>S: Validates session → money transferred!
+    Note over U: Money stolen without user action
+
+    Note over U,S: WITH CSRF protection
+    U->>B: bank.com login
+    B->>S: POST /login
+    S-->>B: session cookie + CSRF token
+    U->>A: Visits attacker's page
+    A->>B: <img src="bank.com/transfer?to=attacker&amount=1000">
+    B->>S: GET /transfer (with cookie, NO CSRF token)
+    S->>S: Validates CSRF token → MISSING!
+    S-->>B: 403 Forbidden
+    Note over U: Attack blocked
+```
+
+#### OAuth2 Authorization Code Flow
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant B as Browser
+    participant App as Our App
+    participant Auth as Auth Server (Google)
+    participant API as Our API
+
+    U->>App: Click "Login with Google"
+    App->>B: Redirect to Auth Server<br/>?client_id=123&redirect_uri=/callback
+    B->>Auth: GET /authorize
+    Auth->>U: "App wants to access your email. Allow?"
+    U->>Auth: Allow
+    Auth->>B: Redirect to /callback?code=xyz123
+    B->>App: POST /callback with code
+    App->>Auth: POST /token (code + client_secret)
+    Auth-->>App: access_token + refresh_token
+    App->>App: Decode JWT, create session
+    App-->>B: Set session cookie
+    B->>API: API calls (authorized)
+    API-->>B: 200 OK
+```
+
 **Authentication flow (username/password):**
 ```
 1. Client sends POST /login with email + password
@@ -608,40 +750,228 @@ public class AsyncConfig {
   - `X-XSS-Protection: 0`
 - **Testing**: `@WithMockUser(roles = "ADMIN")` for controller tests, `@WithUserDetails("test@user.com")` for integration tests.
 
-## 9. Interview Questions And Answers
 
-### Beginner
-Q: What is the difference between authentication and authorization in Spring Security?
-A: Authentication verifies identity — who the user is (login with email + password). Authorization verifies permissions — what the user can do (has ADMIN role, can access /api/admin). Spring Security processes authentication first (via filters), then authorization (via FilterSecurityInterceptor or @PreAuthorize).
+## 9. Interview Traps & Frequently Asked Questions
 
-### Intermediate
-Q: How does Spring Security's filter chain work? What is the purpose of the exception translation filter?
-A: Spring Security processes every HTTP request through a chain of servlet filters. Each filter has a specific responsibility. The default chain includes: SecurityContextPersistenceFilter (loads/saves SecurityContext), LogoutFilter, UsernamePasswordAuthenticationFilter (login), ExceptionTranslationFilter (handles auth failures), FilterSecurityInterceptor (authorization decision). The ExceptionTranslationFilter catches two exceptions: AuthenticationException (sends 401) and AccessDeniedException (sends 403). It also triggers authentication entry points (login redirect for browser clients).
+### 🔴 Critical Traps
 
-### Senior
-Q: You're building a microservice architecture with API gateways. Each service needs to validate JWT tokens without calling the auth service on every request. How do you implement this? What happens when the auth service signing key rotates?
-A: Use OAuth2 Resource Server with public key verification:
-1. Auth service publishes its public key at a JWKS endpoint (`/.well-known/jwks.json`)
-2. Each microservice configures `spring.security.oauth2.resourceserver.jwt.jwk-set-uri`
-3. Spring Security fetches the public keys, caches them, and uses them to verify JWT signatures locally
-4. No network call per request — zero latency for auth verification
+**Trap 1: CORS preflight returns 401 because OPTIONS not permitted**
+```java
+http.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/**").authenticated()
+    // ❌ Missing: .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+);
+```
+❌ Problem: Browser sends OPTIONS (preflight) before actual request. If OPTIONS requires auth → 401 → browser blocks actual request. API works in Postman but fails from browser.
 
-Key rotation:
-5. Auth service generates new key pair, adds new JWK to JWKS response (keeping old key for grace period)
-6. Spring Security's `NimbusJwtDecoder` periodically refreshes the JWKS cache
-7. Tokens signed with the old key are valid until they expire (grace period)
-8. Old key is removed from JWKS after all tokens signed with it have expired
+Fix: Always permit OPTIONS:
+```java
+.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+```
 
-### Tricky
-Q: User A authenticates with valid credentials. User A's session is still active. An attacker steals the session cookie. How do you prevent the attacker from using the stolen session?
-A: Multi-layered defense:
-1. **Session fixation protection**: Spring Security changes the session ID after login (`SessionManagementFilter`). The attacker cannot force a known session ID.
-2. **HTTPS only**: `HttpOnly` and `Secure` flags on session cookie prevent JavaScript access and ensure TLS-only transmission.
-3. **IP binding**: Store client IP in session. On each request, compare `request.getRemoteAddr()` with stored IP. Mismatch → invalidate session.
-4. **Device fingerprinting**: Store User-Agent and other headers in session. Detect anomalies.
-5. **Short session timeout**: Max session age (e.g., 30 minutes of inactivity).
-6. **Refresh token rotation**: For JWT: use refresh tokens that are single-use. Each refresh issues a new access token AND a new refresh token. If a refresh token is used twice (attacker + legitimate user), both are revoked.
-7. **Multi-factor authentication**: Even with a valid session, require MFA for sensitive operations.
+**Trap 2: `hasRole('ADMIN')` doesn't work — role not found**
+```java
+// UserDetailsService returns:
+List.of(new SimpleGrantedAuthority("ADMIN")) // ❌ Missing ROLE_ prefix
+
+// Security config:
+.requestMatchers("/admin").hasRole("ADMIN") // Checks for "ROLE_ADMIN"
+```
+❌ Result: Always 403. `hasRole("ADMIN")` looks for authority `ROLE_ADMIN`.
+
+Fix: Either:
+- Add prefix in `UserDetailsService`: `new SimpleGrantedAuthority("ROLE_" + role)`
+- OR use `hasAuthority("ADMIN")` (no prefix)
+
+**Trap 3: JWT token stored in localStorage vulnerable to XSS**
+```javascript
+// JavaScript can access localStorage:
+document.getElementById('steal').innerText = localStorage.getItem('token');
+```
+❌ Problem: XSS attack can steal token. Valid for 1 hour.
+
+Fix options:
+1. **HttpOnly cookie**: Server sets cookie with `HttpOnly` flag → JavaScript cannot access. But vulnerable to CSRF.
+2. **Short-lived access token + refresh token**: Access token = 15 min. Refresh token = 7 days, stored in HttpOnly cookie. If access token stolen, window is short.
+3. **Token binding**: Bind token to device/IP. Detect if token used from different IP.
+
+**Trap 4: `@PreAuthorize` silently ignored**
+```java
+@RestController
+public class UserController {
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/users")
+    public List<User> getUsers() { ... }
+}
+```
+❌ Problem: `@PreAuthorize` has NO EFFECT without `@EnableMethodSecurity`.
+
+Fix: Add to configuration class:
+```java
+@Configuration
+@EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
+public class SecurityConfig {}
+```
+
+**Trap 5: Stateless JWT API with session management enabled**
+```java
+http
+    .sessionManagement(session -> session
+        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // ❌ Default!
+    );
+```
+❌ Problem: Sessions created even for JWT API. Server stores session in memory/Redis. Session fixation attacks possible. Wastes resources.
+
+Fix: `SessionCreationPolicy.STATELESS`
+
+**Trap 6: `SecurityContextHolder` context leaks between requests**
+```java
+@Component
+public class MyFilter extends OncePerRequestFilter {
+    protected void doFilterInternal(...) {
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        // ❌ Forgot to clear! Next request sees this authentication!
+    }
+}
+```
+❌ Problem: `SecurityContextHolder` uses `ThreadLocal` by default. In thread pools, thread reused → next request sees previous authentication.
+
+Fix: Clear at end of filter:
+```java
+finally {
+    SecurityContextHolder.clearContext();
+}
+```
+
+### 📋 Common Interview Questions
+
+**Q: Explain Spring Security architecture — filter chain, authentication, authorization.**
+A: Spring Security works via a chain of servlet filters. Every request passes through:
+1. **SecurityContextPersistenceFilter**: Loads/saves `SecurityContext` (holds authenticated user)
+2. **UsernamePasswordAuthenticationFilter**: Handles login (POST /login)
+3. **ExceptionTranslationFilter**: Catches auth errors (401/403)
+4. **FilterSecurityInterceptor**: Final authorization check
+
+Flow:
+1. Client sends credentials (or JWT token)
+2. Filter extracts → `AuthenticationManager.authenticate()`
+3. `ProviderManager` delegates to `AuthenticationProvider`s (DAO, JWT, OAuth2)
+4. Provider loads user via `UserDetailsService`, verifies password
+5. On success: `SecurityContextHolder` stores authenticated `Authentication`
+6. Later filters check `hasRole()` / `@PreAuthorize`
+7. Response returned
+
+**Q: What is the difference between `AuthenticationManager`, `ProviderManager`, and `AuthenticationProvider`?**
+A: `AuthenticationManager` is the interface (single method: `authenticate()`). `ProviderManager` is the default implementation — it holds a list of `AuthenticationProvider`s and iterates through them. Each `AuthenticationProvider` handles one authentication mechanism: `DaoAuthenticationProvider` (username/password from DB), `JwtAuthenticationProvider` (JWT validation), `OAuth2LoginAuthenticationProvider` (OAuth2 login). First provider to return non-null wins.
+
+**Q: How does JWT authentication work in Spring Security?**
+A: JWT is stateless — no server-side session storage:
+1. Client sends username/password to `/login`
+2. Server validates → creates JWT (signed with secret/private key, contains userId + roles + expiry)
+3. Client stores JWT (localStorage, memory, or HttpOnly cookie)
+4. Client sends every request with `Authorization: Bearer <token>`
+5. Custom `OncePerRequestFilter` (added before `UsernamePasswordAuthenticationFilter`):
+   - Extracts token from header
+   - Validates signature (HMAC or RSA public key)
+   - Checks expiry
+   - Extracts claims (userId, roles)
+   - Creates `UsernamePasswordAuthenticationToken` (authenticated)
+   - Sets in `SecurityContextHolder`
+6. `FilterSecurityInterceptor` checks authorization rules
+
+No session created. Server is stateless.
+
+**Q: What is OAuth2 and how does Spring Security support it?**
+A: OAuth2 = authorization framework for third-party access. Roles:
+- **Authorization Server**: Issues tokens (Keycloak, Okta, Spring Authorization Server)
+- **Resource Server**: Validates tokens and protects APIs (Spring Security `oauth2ResourceServer`)
+- **Client**: Application requesting access (your frontend/mobile app)
+
+Spring Security roles:
+- **Resource Server**: Configures `JwtDecoder` (validate JWTs via JWKS endpoint)
+- **Client**: `OAuth2LoginAuthenticationFilter` handles OAuth2 login (Google, GitHub)
+
+Flow (Authorization Code):
+1. User clicks "Login with Google"
+2. App redirects to Google's authorization endpoint
+3. User authenticates with Google
+4. Google redirects back with authorization code
+5. App exchanges code for access_token + refresh_token
+6. App uses access_token to call Google APIs
+
+Spring Security: `oauth2Login()` configures the client side.
+
+**Q: When should you enable CSRF protection? When should you disable it?**
+A: **Enable CSRF** when using session-based authentication (traditional web apps with server-rendered pages). CSRF protects against attackers tricking logged-in users into executing unwanted actions via browser.
+
+**Disable CSRF** for stateless JWT APIs:
+- JWT sent in `Authorization` header (not cookie)
+- Browser does NOT automatically attach `Authorization` header to cross-origin requests
+- CSRF attacks rely on browser auto-sending cookies
+- Enabling CSRF for JWT causes unnecessary 403 errors
+
+**Q: How would you implement method-level security? What are the differences between `@PreAuthorize`, `@PostAuthorize`, `@Secured`, `@ RolesAllowed`?**
+A: Enable with `@EnableMethodSecurity` (Spring 6+):
+- `@PreAuthorize("hasRole('ADMIN')")`: Check BEFORE method runs. Most common. Can reference method params: `@PreAuthorize("#userId == authentication.name)`.
+- `@PostAuthorize("returnObject.owner == authentication.name")`: Check AFTER method runs. Can inspect return value.
+- `@Secured("ROLE_ADMIN")`: Simple role check. No SpEL (expression language). Just roles.
+- `@RolesAllowed("ADMIN")`: JSR-250 standard annotation. Works like `@Secured`.
+
+Use `@PreAuthorize` for most cases. Use `@PostAuthorize` when you need to verify the returned object belongs to the user.
+
+**Q: What is the purpose of `PasswordEncoder`? Why can't you store plain text passwords?**
+A: `PasswordEncoder` hashes passwords before storage. Never store plain text — if DB compromised, all passwords exposed. Spring Security's `BCryptPasswordEncoder`:
+- Adds random salt (different hash each time — prevents rainbow table attacks)
+- Configurable strength (default 10 rounds, ~100ms per hash)
+- Adaptive: can increase rounds as CPU gets faster
+- `matches(rawPassword, storedHash)` verifies without knowing original password
+
+Modern alternatives: `Argon2PasswordEncoder` (memory-hard, resists GPU attacks).
+
+**Q: You have a multi-tenant SaaS application. How do you implement row-level security so tenants only see their data?**
+A: Two approaches:
+1. **Application-level**: Add `WHERE tenant_id = ?` to every query. Use `@PostFilter`:
+   ```java
+   @GetMapping("/orders")
+   @PostFilter("filterObject.tenantId == authentication.principal.tenantId")
+   public List<Order> getAllOrders() { ... }
+   ```
+2. **Database-level (PostgreSQL RLS)**:
+   ```sql
+   CREATE POLICY tenant_isolation ON orders TO app_user
+       USING (tenant_id = current_setting('app.current_tenant')::UUID);
+   SET app.current_tenant = 'tenant-uuid-123';
+   ```
+   RLS enforced by DB — cannot bypass even if application bug.
+
+**Q: How does Spring Security handle session fixation attacks?**
+A: Session fixation = attacker sets a known session ID for victim. After victim logs in, attacker uses the same session ID to impersonate.
+
+Spring Security protection: `SessionManagementFilter` changes the session ID after authentication (`SessionFixationProtectionStrategy`). Default: `migrateSession` — creates new session, copies attributes, invalidates old session.
+
+Options:
+- `migrateSession` (default): new session ID
+- `newSession`: new empty session
+- `none`: no protection (dangerous)
+- `changeSessionId` (Servlet 3.1+): changes ID, keeps same session
+
+**Q: What is the difference between `permitAll()` and `anonymous()`?**
+A: `permitAll()` — allows ALL requests (authenticated and anonymous). No security check.
+`anonymous()` — requires the user to be authenticated as anonymous (not logged in). Use to hide endpoints from logged-in users (e.g., login/register pages).
+
+Example: `/api/auth/**` uses `permitAll()` (everyone can access login). `/landing` uses `anonymous()` (only visible to non-logged-in users).
+
+**Q: Explain how Spring Security's `AccessDecisionManager` works.**
+A: `FilterSecurityInterceptor` calls `AccessDecisionManager` to make final authorization decision. Three strategies:
+- `AffirmativeBased`: requires at least one voter to grant access. Default for web security.
+- `ConsensusBased`: majority of voters must agree.
+- `UnanimousBased`: ALL voters must grant (strictest).
+
+Voters: `RoleVoter` (votes based on roles), `AuthenticatedVoter` (votes based on authentication level: IS_AUTHENTICATED_FULLY, IS_AUTHENTICATED_REMEMBERED, IS_AUTHENTICATED_ANONYMOUSLY).
+
+### 🎯 One-Liner Interview Answers
+
+"Spring Security: filter chain (SecurityContextPersistenceFilter → ExceptionTranslationFilter → FilterSecurityInterceptor). Authentication: UserDetailsService + PasswordEncoder + AuthenticationManager. Authorization: route rules (`permitAll`, `hasRole`) + method security (`@PreAuthorize`). JWT: custom `OncePerRequestFilter` extracts Bearer token, validates signature/expiry, sets SecurityContext. OAuth2: Resource Server + JWKS endpoint, Client + `oauth2Login()`. CSRF: disable for stateless, enable for session-based. CORS: configure allowed origins, permit OPTIONS. `hasRole('ADMIN')` checks `ROLE_ADMIN`. `@EnableMethodSecurity` enables `@PreAuthorize`. Session fixation: Spring changes session ID on login. Traps: OPTIONS 401 blocks browser, `ROLE_` prefix mismatch, JWT in localStorage = XSS risk, `SecurityContextHolder.clearContext()` to prevent thread leak."
 
 ## 10. Final 30-Second Answer
 

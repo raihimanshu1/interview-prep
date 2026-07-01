@@ -1,0 +1,41 @@
+classDiagram
+    class Iterable~T~ {
+        <<interface>>
+        +iterator() Iterator~T~
+        +forEach(Consumer~T~) void
+    }
+    class Collection~E~ {
+        <<interface>>
+        +add(E) boolean
+        +remove(Object) boolean
+        +contains(Object) boolean
+        +size() int
+        +isEmpty() boolean
+    }
+    class Iterator~E~ {
+        <<interface>>
+        +hasNext() boolean
+        +next() E
+        +remove() void
+    }
+    class ListIterator~E~ {
+        <<interface>>
+        +hasPrevious() boolean
+        +previous() E
+        +set(E) void
+        +add(E) void
+    }
+    class Spliterator~T~ {
+        <<interface>>
+        +tryAdvance(Consumer) boolean
+        +trySplit() Spliterator
+        +characteristics() int
+    }
+    
+    Iterable --> Iterator : creates
+    Iterable --> Spliterator : creates
+    Iterator <|-- ListIterator
+    Collection --|> Iterable : extends
+    Collection ..> List : implements
+    Collection ..> Set : implements  
+    Collection ..> Queue : implements

@@ -1,0 +1,43 @@
+classDiagram
+    class Queue {
+        <<interface>>
+        +offer(E) boolean
+        +poll() E
+        +peek() E
+    }
+    class BlockingQueue~E~ {
+        <<interface>>
+        +put(E) void
+        +take() E
+        +offer(E, long, TimeUnit) boolean
+        +poll(long, TimeUnit) E
+        +remainingCapacity() int
+    }
+    class ArrayBlockingQueue~E~ {
+        -Object[] items
+        -ReentrantLock lock
+        -Condition notEmpty
+        -Condition notFull
+    }
+    class LinkedBlockingQueue~E~ {
+        -Node~E~ head
+        -Node~E~ last
+        -ReentrantLock takeLock
+        -ReentrantLock putLock
+    }
+    class PriorityBlockingQueue~E~ {
+        -Object[] queue
+        -ReentrantLock lock
+        -Condition notEmpty
+    }
+    class SynchronousQueue~E~ {
+    }
+    class DelayQueue~E~ {
+    }
+    
+    Queue <|.. BlockingQueue
+    BlockingQueue <|.. ArrayBlockingQueue
+    BlockingQueue <|.. LinkedBlockingQueue
+    BlockingQueue <|.. PriorityBlockingQueue
+    BlockingQueue <|.. SynchronousQueue
+    BlockingQueue <|.. DelayQueue

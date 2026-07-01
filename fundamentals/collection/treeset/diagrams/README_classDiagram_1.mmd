@@ -1,0 +1,44 @@
+classDiagram
+    class Set {
+        <<interface>>
+        +add(E) boolean
+        +remove(Object) boolean
+        +contains(Object) boolean
+    }
+    class SortedSet {
+        <<interface>>
+        +first() E
+        +last() E
+        +subSet(E, E) SortedSet
+    }
+    class NavigableSet {
+        <<interface>>
+        +lower(E) E
+        +floor(E) E
+        +ceiling(E) E
+        +higher(E) E
+        +pollFirst() E
+        +pollLast() E
+    }
+    class AbstractSet {
+        <<abstract>>
+    }
+    class TreeSet~E~ {
+        -NavigableMap~E, Object~ m
+        +add(E) boolean
+        +contains(Object) boolean
+        +remove(Object) boolean
+    }
+    class TreeMap~K,V~ {
+        -Entry~K,V~ root
+        +put(K,V) V
+        +get(Object) V
+    }
+    
+    Set <|.. SortedSet
+    SortedSet <|.. NavigableSet
+    AbstractSet <|-- TreeSet
+    NavigableSet <|.. TreeSet
+    TreeSet ..> TreeMap : backed by
+    Cloneable <|.. TreeSet
+    Serializable <|.. TreeSet

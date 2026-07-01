@@ -1,0 +1,9 @@
+graph TD
+    Q1["Need ordered collection?"] -->|Yes| Q2
+    Q1 -->|No| SET["Use HashSet"]
+    Q2["Frequent random access by index?"] -->|Yes| ARRAYLIST
+    Q2 -->|No| Q3
+    Q3["Frequent add/remove at ends?"] -->|Yes| LINKED["LinkedList or ArrayDeque"]
+    Q3 -->|No| ARRAYLIST
+    
+    ARRAYLIST["✅ ArrayList"]

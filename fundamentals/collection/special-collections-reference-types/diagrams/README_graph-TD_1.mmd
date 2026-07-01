@@ -1,0 +1,12 @@
+graph TD
+    subgraph "Reference Types"
+        WK[WeakReference] --> WHM[WeakHashMap]
+        IK[IdentityHashMap] --> OI["uses == not equals()"]
+        EM[EnumMap] --> EK[enum keys]
+        ES[EnumSet] --> EK2[bit vector for enums]
+    end
+    subgraph "Special Collections"
+        COW[CopyOnWriteArrayList]
+        COWS[CopyOnWriteArraySet]
+    end
+    COW -.-> COWS[backed by COWArrayList]

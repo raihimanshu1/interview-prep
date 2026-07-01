@@ -1,0 +1,47 @@
+classDiagram
+    class Map {
+        <<interface>>
+        +put(K,V) V
+        +get(Object) V
+    }
+    class ConcurrentMap {
+        <<interface>>
+        +putIfAbsent(K,V) V
+        +replace(K,V,V) boolean
+        +remove(Object,Object) boolean
+    }
+    class ConcurrentHashMap {
+        -Node~K,V~[] table
+        -transient volatile int sizeCtl
+        +put(K,V) V
+        +get(Object) V
+        +computeIfAbsent(K, Function) V
+    }
+    class Node~K,V~ {
+        -int hash
+        -K key
+        -V val
+        -volatile Node~K,V~ next
+    }
+    class TreeNode~K,V~ {
+        -TreeNode~K,V~ parent
+        -TreeNode~K,V~ left
+        -TreeNode~K,V~ right
+        -volatile boolean red
+    }
+    class ReservationNode~K,V~ {
+        <<special>>
+    }
+    class ForwardingNode~K,V~ {
+        <<special>>
+        -Node~K,V~[] nextTable
+    }
+    
+    Map <|.. ConcurrentMap
+    ConcurrentMap <|.. ConcurrentHashMap
+    ConcurrentHashMap "1" *--> "0..*" Node : bucket array
+    Node <|-- TreeNode
+    Node <|-- ReservationNode
+    Node <|-- ForwardingNode
+    ConcurrentHashMap --> "uses" CAS : Compare-And-Swap
+    ConcurrentHashMap --> "uses" synchronized : per-bucket lock

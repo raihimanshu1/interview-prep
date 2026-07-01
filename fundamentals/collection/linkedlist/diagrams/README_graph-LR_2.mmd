@@ -1,0 +1,21 @@
+graph LR
+    subgraph "Doubly-Linked Nodes"
+        N1_PREV["null"] --> N1["Node(item=A)"]
+        N1 --> N1_NEXT["Node(item=B)"]
+        N1_NEXT --> N2["Node(item=B)"]
+        N2 --> N2_NEXT["Node(item=C)"]
+        N2 --> N2_PREV["Node(item=A)"]
+        N2_NEXT --> N3["Node(item=C)"]
+        N3 --> N3_NEXT["null"]
+        N3 --> N3_PREV["Node(item=B)"]
+    end
+    
+    subgraph "LinkedList"
+        LL["LinkedList"]
+        LL_FIRST["first → A"]
+        LL_LAST["last  → C"]
+        LL_SIZE["size = 3"]
+    end
+    
+    LL_FIRST -.-> N1
+    LL_LAST -.-> N3

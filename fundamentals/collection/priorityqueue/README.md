@@ -10,6 +10,41 @@ Misunderstanding PriorityQueue causes:
 - Confusion about iteration order (NOT sorted!)
 - `ClassCastException` at runtime for mixed Comparable/Comparator usage
 
+## 1.5 Collection Hierarchy
+
+
+![README_classDiagram_1](./diagrams/README_classDiagram_1.png)
+
+```mermaid
+classDiagram
+    class Queue {
+        <<interface>>
+        +offer(E) boolean
+        +poll() E
+        +peek() E
+    }
+    class AbstractQueue {
+        <<abstract>>
+    }
+    class PriorityQueue~E~ {
+        -Object[] queue
+        -int size
+        -Comparator~E~ comparator
+        +offer(E) boolean
+        +poll() E
+        +peek() E
+        +comparator() Comparator
+    }
+    class PriorityBlockingQueue~E~ {
+    }
+    
+    Queue <|.. AbstractQueue
+    AbstractQueue <|-- PriorityQueue
+    PriorityQueue <|-- PriorityBlockingQueue : thread-safe
+    Cloneable <|.. PriorityQueue
+    Serializable <|.. PriorityQueue
+```
+
 ## 2. Basic Meaning
 
 PriorityQueue implements Queue interface backed by a binary heap (priority heap). Elements ordered by natural order (Comparable) or custom Comparator. Head of queue = least element (min-heap by default).

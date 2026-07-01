@@ -1,0 +1,20 @@
+graph LR
+    subgraph "Initial: new ArrayList<>()"
+        A1["elementData = {} (empty array)"]
+    end
+    
+    subgraph "First add → expand to 10"
+        A2["elementData = [e0, null, null, ...] (cap=10, size=1)"]
+    end
+    
+    subgraph "Add 10th element → full"
+        A3["elementData = [e0...e9] (cap=10, size=10)"]
+    end
+    
+    subgraph "Add 11th → grow 1.5x → 15"
+        A4["elementData = [e0...e10, null, null, null, null] (cap=15, size=11)"]
+        A5["Copy old array → new array"]
+    end
+    
+    A1 --> A2 --> A3 --> A4
+    A3 -.->|"Arrays.copyOf()"| A5 -.-> A4

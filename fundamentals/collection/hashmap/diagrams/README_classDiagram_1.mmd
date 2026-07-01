@@ -1,0 +1,54 @@
+classDiagram
+    class Map {
+        <<interface>>
+        +put(K, V) V
+        +get(Object) V
+        +remove(Object) V
+        +containsKey(Object) boolean
+        +keySet() Set~K~
+        +entrySet() Set~Entry~
+    }
+    class AbstractMap {
+        <<abstract>>
+    }
+    class HashMap {
+        -Node[] table
+        -int size
+        -float loadFactor
+        -int threshold
+        +DEFAULT_INITIAL_CAPACITY : int = 16
+        +DEFAULT_LOAD_FACTOR : float = 0.75
+        +put(K, V) V
+        +get(Object) V
+        +resize() Node[]
+    }
+    class LinkedHashMap {
+        -Entry before, after
+        -boolean accessOrder
+        +get(Object) V
+    }
+    class ConcurrentHashMap {
+        -Node[] table
+        +put(K, V) V
+        +get(Object) V
+    }
+    
+    Map <|.. AbstractMap
+    AbstractMap <|-- HashMap
+    HashMap <|-- LinkedHashMap
+    HashMap <|.. ConcurrentHashMap : similar structure
+    Map ..> "1..*" Node : contains
+    class Node~K,V~ {
+        -int hash
+        -K key
+        -V value
+        -Node next
+    }
+    class TreeNode~K,V~ {
+        -TreeNode parent
+        -TreeNode left
+        -TreeNode right
+        -TreeNode prev
+        -boolean red
+    }
+    Node <|-- TreeNode
