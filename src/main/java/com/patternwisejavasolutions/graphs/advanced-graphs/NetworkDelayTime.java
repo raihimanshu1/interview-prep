@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.graphs.advancedgraphs;
 
-package com.patternwisejavasolutions.graphs.advancedGraphs;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

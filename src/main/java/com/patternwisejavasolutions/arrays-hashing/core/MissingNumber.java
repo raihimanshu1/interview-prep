@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.arrayshashing.core;
 
-package com.patternwisejavasolutions.arraysHashing.core;
 public class MissingNumber {
 
     /*

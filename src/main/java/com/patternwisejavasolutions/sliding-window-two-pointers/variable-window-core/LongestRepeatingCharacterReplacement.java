@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.slidingwindowtwopointers.variablewindowcore;
 
-package com.patternwisejavasolutions.slidingWindowTwoPointers.variableWindowCore;
 public class LongestRepeatingCharacterReplacement {
 
     /*

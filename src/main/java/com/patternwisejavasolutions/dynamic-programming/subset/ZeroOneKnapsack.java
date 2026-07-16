@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.dynamicprogramming.subset;
 
-package com.patternwisejavasolutions.dynamicProgramming.subset;
 public class ZeroOneKnapsack {
 
     /*

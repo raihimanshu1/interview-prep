@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.stack.contributionpattern;
 
-package com.patternwisejavasolutions.stack.contributionPattern;
 import java.util.Stack;
 
 public class SumOfSubarrayMinimums {

@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.graphs.bfsshortestpath;
 
-package com.patternwisejavasolutions.graphs.bfsShortestPath;
 import java.util.LinkedList;
 import java.util.Queue;
 

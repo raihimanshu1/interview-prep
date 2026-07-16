@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.binarysearch.variations;
 
-package com.patternwisejavasolutions.binarySearch.variations;
 public class MedianOfTwoSortedArrays {
 
     /*

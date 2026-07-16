@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class CoursesSharingWithFriends {
@@ -27,6 +26,7 @@ public class CoursesSharingWithFriends {
      * WHAT IT MEANS
      * Collect direct friends, collect their courses, then subtract target user courses.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

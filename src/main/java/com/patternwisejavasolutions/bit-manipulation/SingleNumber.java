@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.bitmanipulation;
 
-package com.patternwisejavasolutions.bitManipulation;
 import java.util.HashSet;
 import java.util.Set;
 

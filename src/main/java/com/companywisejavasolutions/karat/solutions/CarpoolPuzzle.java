@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class CarpoolPuzzle {
@@ -27,6 +26,7 @@ public class CarpoolPuzzle {
      * WHAT IT MEANS
      * Compute arrival time from each start to every location, then compare per person.
      */
+
     /*
      * IN-DEPTH EXPLANATION
      *

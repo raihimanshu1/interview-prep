@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.queuedeque;
 
-package com.patternwisejavasolutions.queueDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;

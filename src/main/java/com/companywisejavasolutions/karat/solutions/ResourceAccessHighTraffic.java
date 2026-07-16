@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class ResourceAccessHighTraffic {
@@ -27,6 +26,7 @@ public class ResourceAccessHighTraffic {
      * WHAT IT MEANS
      * Group timestamps by resource, sort each resource timeline, and check five-minute windows.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

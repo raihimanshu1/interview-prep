@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.graphs.connectivity;
+
 public class RedundantConnection {
 
     /*

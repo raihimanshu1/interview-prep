@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.stack.monotonicincreasingnextgreater;
 
-package com.patternwisejavasolutions.stack.monotonicIncreasingNextGreater;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;

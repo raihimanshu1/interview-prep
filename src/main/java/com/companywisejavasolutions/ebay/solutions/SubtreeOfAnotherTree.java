@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.ebay.solutions;
+
 public class SubtreeOfAnotherTree {
 
     public static class TreeNode {

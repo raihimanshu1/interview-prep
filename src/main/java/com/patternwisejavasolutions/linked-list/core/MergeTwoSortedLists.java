@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.linkedlist.core;
 
-package com.patternwisejavasolutions.linkedList.core;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

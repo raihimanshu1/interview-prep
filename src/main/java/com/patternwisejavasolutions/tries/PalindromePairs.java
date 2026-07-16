@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.tries;
+
 public class PalindromePairs {
 
     /*

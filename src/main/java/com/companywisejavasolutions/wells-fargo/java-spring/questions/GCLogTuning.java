@@ -1,5 +1,5 @@
+package com.companywisejavasolutions.wellsfargo.javaspring.questions;
 
-package com.companywisejavasolutions.wellsFargo.javaSpring.questions;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;

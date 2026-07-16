@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.intervalsgreedy.greedy;
 
-package com.patternwisejavasolutions.intervalsGreedy.greedy;
 import java.util.ArrayList;
 import java.util.List;
 

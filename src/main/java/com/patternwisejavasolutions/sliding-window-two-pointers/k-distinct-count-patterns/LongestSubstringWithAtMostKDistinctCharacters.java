@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.slidingwindowtwopointers.kdistinctcountpatterns;
 
-package com.patternwisejavasolutions.slidingWindowTwoPointers.kDistinctCountPatterns;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

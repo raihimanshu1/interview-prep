@@ -1,3 +1,5 @@
+package com.lldtop16.elevator;
+
 /*We will build **Elevator System LLD** in the same style as previous ones:
         * Single Java file
         * Directly paste into IntelliJ and run
@@ -103,10 +105,6 @@
         ```
         Paste everything:
         ```java*/
-
-package com.lldtop16.elevator;
-
-
 
 import java.util.*;
 public class ElevatorSystem {

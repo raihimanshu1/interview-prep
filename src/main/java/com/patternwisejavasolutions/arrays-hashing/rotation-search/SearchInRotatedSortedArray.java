@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.arrayshashing.rotationsearch;
 
-package com.patternwisejavasolutions.arraysHashing.rotationSearch;
 public class SearchInRotatedSortedArray {
 
     /*

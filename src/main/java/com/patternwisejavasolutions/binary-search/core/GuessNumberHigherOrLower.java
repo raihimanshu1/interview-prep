@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.binarysearch.core;
 
-package com.patternwisejavasolutions.binarySearch.core;
 public class GuessNumberHigherOrLower {
 
     private int pickedNumber;

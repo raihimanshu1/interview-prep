@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.stack.monotonicincreasingnextgreater;
 
-package com.patternwisejavasolutions.stack.monotonicIncreasingNextGreater;
 import java.util.Stack;
 
 public class DailyTemperatures {

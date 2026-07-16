@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.strings.palindrome;
+
 public class StringValidPalindromeII {
 
 /*

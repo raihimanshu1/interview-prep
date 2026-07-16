@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.trees.structural;
+
 public class BalancedBinaryTree {
 
     /* PROBLEM IN SIMPLE WORDS

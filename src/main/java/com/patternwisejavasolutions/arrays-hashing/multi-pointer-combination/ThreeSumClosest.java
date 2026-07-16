@@ -1,3 +1,5 @@
+package com.patternwisejavasolutions.arrayshashing.multipointercombination;
+
 /**
  * THREE SUM CLOSEST — Find three integers whose sum is closest to target
  * 
@@ -10,11 +12,6 @@
  * Pattern: Sort + Fix one element + Two-pointer on the rest
  * O(n²) time, O(1) or O(log n) space for sorting
  */
-
-package com.patternwisejavasolutions.arraysHashing.multiPointerCombination;
-
-
-
 
 import java.util.Arrays;
 public class ThreeSumClosest {

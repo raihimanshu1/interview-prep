@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.ebay.solutions;
+
 import java.util.ArrayDeque;
 import java.util.Queue;
 

@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.slidingwindowtwopointers.windowoptimization;
 
-package com.patternwisejavasolutions.slidingWindowTwoPointers.windowOptimization;
 public class MaxConsecutiveOnesIII {
 
     /*

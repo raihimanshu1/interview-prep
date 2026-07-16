@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.strings.manipulation;
+
 public class ImplementStrStr {
 
 /*

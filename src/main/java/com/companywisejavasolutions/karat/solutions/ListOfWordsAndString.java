@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class ListOfWordsAndString {
@@ -25,6 +24,7 @@ public class ListOfWordsAndString {
      * WHAT IT MEANS
      * Same character-frequency check, but collect every passing word.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

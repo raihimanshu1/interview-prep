@@ -1,3 +1,5 @@
+package com.patternwisejavasolutions.matrix;
+
 /**
  * ROTTING ORANGES — Multi-source BFS
  * 
@@ -11,11 +13,6 @@
  * Pattern: Multi-source BFS (start from ALL rotten oranges simultaneously)
  * LeetCode 994 - Medium
  */
-
-package com.patternwisejavasolutions.matrix;
-
-
-
 
 import java.util.*;
 public class RottingOranges {

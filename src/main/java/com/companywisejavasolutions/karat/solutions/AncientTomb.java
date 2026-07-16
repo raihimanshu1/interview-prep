@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class AncientTomb {
@@ -25,6 +24,7 @@ public class AncientTomb {
      * WHAT IT MEANS
      * Run BFS from S until T is reached.
      */
+
     /*
      * IN-DEPTH EXPLANATION
      *

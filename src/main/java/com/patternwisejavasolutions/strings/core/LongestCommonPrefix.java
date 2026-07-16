@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.strings.core;
+
 public class LongestCommonPrefix {
 
 /*

@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.binarysearch.searchonanswer;
 
-package com.patternwisejavasolutions.binarySearch.searchOnAnswer;
 public class CapacityToShipPackages {
 
     /*

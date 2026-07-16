@@ -1,3 +1,5 @@
+package com.patternwisejavasolutions.binarysearch.basics;
+
 /**
  * BINARY SEARCH — Basics & Warmup
  * 
@@ -8,11 +10,6 @@
  * 4. Binary search on answer space (monotonic function)
  * 5. Search on 2D matrix
  */
-
-package com.patternwisejavasolutions.binarySearch.basics;
-
-
-
 
 import java.util.*;
 public class BinarySearchBasics {

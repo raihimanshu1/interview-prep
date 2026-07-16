@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.slidingwindowtwopointers.fixedwindow;
 
-package com.patternwisejavasolutions.slidingWindowTwoPointers.fixedWindow;
 public class MaximumSumSubarrayOfSizeK {
 
     /*

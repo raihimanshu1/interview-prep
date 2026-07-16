@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.arrayshashing.multipointercombination;
 
-package com.patternwisejavasolutions.arraysHashing.multiPointerCombination;
 public class TwoSumIIInputArrayIsSorted {
 
     /*

@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.heappriorityqueue;
 
-package com.patternwisejavasolutions.heapPriorityQueue;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;

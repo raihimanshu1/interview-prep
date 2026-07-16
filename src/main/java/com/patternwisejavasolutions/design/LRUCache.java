@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.design;
+
 import java.util.HashMap;
 import java.util.Map;
 

@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.stack.core;
+
 import java.util.Stack;
 
 public class BaseballGame {

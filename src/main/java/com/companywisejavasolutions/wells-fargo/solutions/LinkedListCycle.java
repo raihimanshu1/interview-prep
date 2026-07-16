@@ -1,5 +1,5 @@
+package com.companywisejavasolutions.wellsfargo.solutions;
 
-package com.companywisejavasolutions.wellsFargo.solutions;
 import java.util.HashSet;
 import java.util.Set;
 

@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.arrayshashing.prefixsubarray;
 
-package com.patternwisejavasolutions.arraysHashing.prefixSubarray;
 import java.util.HashMap;
 import java.util.Map;
 

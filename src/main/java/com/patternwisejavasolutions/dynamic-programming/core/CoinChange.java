@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.dynamicprogramming.core;
 
-package com.patternwisejavasolutions.dynamicProgramming.core;
 import java.util.Arrays;
 
 public class CoinChange {

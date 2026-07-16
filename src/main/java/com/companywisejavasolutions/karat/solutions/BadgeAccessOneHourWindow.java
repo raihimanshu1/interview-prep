@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +29,7 @@ public class BadgeAccessOneHourWindow {
      * WHAT IT MEANS
      * Group times by employee, sort them, and look for any three times where max - min <= 60 minutes.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

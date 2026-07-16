@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.linkedlist.twopointerpatterns;
 
-package com.patternwisejavasolutions.linkedList.twoPointerPatterns;
 import java.util.ArrayList;
 import java.util.List;
 

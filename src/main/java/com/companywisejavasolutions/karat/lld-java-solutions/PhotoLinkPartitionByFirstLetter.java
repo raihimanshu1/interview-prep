@@ -1,5 +1,5 @@
+package com.companywisejavasolutions.karat.lldjavasolutions;
 
-package com.companywisejavasolutions.karat.lldJavaSolutions;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
 

@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.trees.dfscore;
 
-package com.patternwisejavasolutions.trees.dfsCore;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.heappriorityqueue;
 
-package com.patternwisejavasolutions.heapPriorityQueue;
 import java.util.Arrays;
 import java.util.PriorityQueue;
 

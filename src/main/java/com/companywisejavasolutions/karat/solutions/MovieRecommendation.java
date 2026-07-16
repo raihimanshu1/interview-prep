@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class MovieRecommendation {
@@ -26,6 +25,7 @@ public class MovieRecommendation {
      * WHAT IT MEANS
      * Similar users share liked movies; recommend their other liked unseen movies.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 public class FindRectangleInMatrix {
 
     /*

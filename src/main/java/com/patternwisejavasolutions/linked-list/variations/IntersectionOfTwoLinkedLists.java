@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.linkedlist.variations;
 
-package com.patternwisejavasolutions.linkedList.variations;
 import java.util.HashSet;
 import java.util.Set;
 

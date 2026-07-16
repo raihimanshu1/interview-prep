@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.bitmanipulation;
 
-package com.patternwisejavasolutions.bitManipulation;
 public class SingleNumberII {
 
     /*

@@ -1,5 +1,5 @@
+package com.companywisejavasolutions.wellsfargo.solutions;
 
-package com.companywisejavasolutions.wellsFargo.solutions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;

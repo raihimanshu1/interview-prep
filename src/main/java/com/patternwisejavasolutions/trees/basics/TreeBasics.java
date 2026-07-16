@@ -1,3 +1,5 @@
+package com.patternwisejavasolutions.trees.basics;
+
 /**
  * TREE — Basics & Warmup
  * 
@@ -11,11 +13,6 @@
  * 7. Lowest Common Ancestor (basic idea)
  * 8. Tree patterns & framework
  */
-
-package com.patternwisejavasolutions.trees.basics;
-
-
-
 
 import java.util.*;
 public class TreeBasics {

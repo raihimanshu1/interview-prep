@@ -1,5 +1,5 @@
+package com.companywisejavasolutions.wellsfargo.solutions;
 
-package com.companywisejavasolutions.wellsFargo.solutions;
 public class WordSearch {
 
     /*

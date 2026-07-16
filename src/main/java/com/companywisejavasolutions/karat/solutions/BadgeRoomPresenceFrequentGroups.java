@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class BadgeRoomPresenceFrequentGroups {
@@ -30,6 +29,7 @@ public class BadgeRoomPresenceFrequentGroups {
      * Convert enter/exit records into time intervals, then measure how long
      * each pair of employees had overlapping intervals.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

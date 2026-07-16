@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class AlertSameKeyCardOneHour {
@@ -26,6 +25,7 @@ public class AlertSameKeyCardOneHour {
      * WHAT IT MEANS
      * Same sliding-window alert as badge access, but output only names.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

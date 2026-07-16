@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.matrix;
+
 public class WordSearch {
 
     /*

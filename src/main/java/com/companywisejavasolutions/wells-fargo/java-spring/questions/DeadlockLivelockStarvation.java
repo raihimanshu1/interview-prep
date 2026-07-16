@@ -1,5 +1,5 @@
+package com.companywisejavasolutions.wellsfargo.javaspring.questions;
 
-package com.companywisejavasolutions.wellsFargo.javaSpring.questions;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;

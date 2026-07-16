@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class LongestContinuousUrlSequence {
@@ -26,6 +25,7 @@ public class LongestContinuousUrlSequence {
      * WHAT IT MEANS
      * This is longest common substring, but the tokens are URLs instead of characters.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

@@ -1,3 +1,5 @@
+package com.patternwisejavasolutions.strings.basics;
+
 /**
  * STRINGS — Basics & Warmup
  * 
@@ -9,11 +11,6 @@
  * 5. Sliding window on strings
  * 6. Two-pointer string patterns
  */
-
-package com.patternwisejavasolutions.strings.basics;
-
-
-
 
 import java.util.*;
 public class StringsBasics {

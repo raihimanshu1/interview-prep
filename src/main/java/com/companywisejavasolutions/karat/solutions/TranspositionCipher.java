@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 public class TranspositionCipher {
 
     /*
@@ -23,6 +22,7 @@ public class TranspositionCipher {
      * WHAT IT MEANS
      * Rows abc/def become columns ad/be/cf.
      */
+
     /*
      * IN-DEPTH EXPLANATION
      *

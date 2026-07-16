@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.mathnumbertheory;
 
-package com.patternwisejavasolutions.mathNumberTheory;
 public class PowXN {
 
     /*

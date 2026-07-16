@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class AdConversionRate {
@@ -37,6 +36,7 @@ public class AdConversionRate {
      * WHAT IT MEANS
      * Map IP to user, count every click by ad, and count a conversion when the clicking IP belongs to a purchasing user.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

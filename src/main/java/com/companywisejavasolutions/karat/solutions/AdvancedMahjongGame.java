@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class AdvancedMahjongGame {
@@ -25,6 +24,7 @@ public class AdvancedMahjongGame {
      * WHAT IT MEANS
      * Try each possible pair, then recursively remove triples or runs.
      */
+
     /*
      * IN-DEPTH EXPLANATION
      *

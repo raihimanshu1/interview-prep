@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class WordsArrayAndPatternMatch {
@@ -25,6 +24,7 @@ public class WordsArrayAndPatternMatch {
      * WHAT IT MEANS
      * Pattern chars and word chars must map one-to-one consistently.
      */
+
     /*
      * IN-DEPTH EXPLANATION
      *

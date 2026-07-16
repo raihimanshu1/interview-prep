@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 public class CompleteString {
 
     /*
@@ -23,6 +22,7 @@ public class CompleteString {
      * WHAT IT MEANS
      * ? can match any one character; normal letters must match exactly.
      */
+
     /*
      * IN-DEPTH EXPLANATION
      *

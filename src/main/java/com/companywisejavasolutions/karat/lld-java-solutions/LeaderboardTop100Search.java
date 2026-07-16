@@ -1,5 +1,5 @@
+package com.companywisejavasolutions.karat.lldjavasolutions;
 
-package com.companywisejavasolutions.karat.lldJavaSolutions;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;

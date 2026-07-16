@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class SnakeInBoard {
@@ -25,6 +24,7 @@ public class SnakeInBoard {
      * WHAT IT MEANS
      * This is shortest path in a grid, solved with BFS.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

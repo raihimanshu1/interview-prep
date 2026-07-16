@@ -141,6 +141,30 @@ For tricky examples, avoid vague wording. Be precise:
 
 Use a patient classroom + interview-coach style. The user wants basic to advanced, one by one, no rush. Keep explanations simple, concrete, example-first, and practical.
 
+## Java Package Structure Rules
+
+**MANDATORY for all generated Java files:**
+
+1. **Package declaration must be FIRST** - before imports, comments, or class declarations
+2. **All lowercase package names** - `ratelimiter` not `RateLimiter` or `rateLimiter`
+3. **No hyphens or underscores** in package names
+4. **Match directory structure** - package path must match folder hierarchy under `src/main/java/`
+
+Directory naming:
+- ✅ `ratelimiter`, `parkinglot`, `simpleapproach`
+- ❌ `rate-limiter`, `rate_limiter`, `RateLimiter`
+
+Package declaration examples:
+```java
+// File: src/main/java/com/lldtop16/ratelimiter/RateLimiter.java
+package com.lldtop16.ratelimiter;
+
+// File: src/main/java/com/companywisejavasolutions/ebay/solutions/BinaryGap.java
+package com.companywisejavasolutions.ebay.solutions;
+```
+
+See `references/java-package-guidelines.md` for complete rules, common errors, and verification checklist.
+
 ## References
 
 - Use `references/answer-template.md` for the required output structure.
@@ -151,3 +175,9 @@ Use a patient classroom + interview-coach style. The user wants basic to advance
 ## Enforcement
 
 This skill is MANDATORY. Every generated file must pass the Quality Checklist before completion. If any section is missing or shallow, regenerate it. The user explicitly rejects surface-level content. Depth is non-negotiable.
+
+**Java Files MUST also pass package structure checks:**
+- Package declaration is the very first line (no blank lines, no comments before it)
+- Package name is all lowercase and matches the directory structure
+- Directory names are all lowercase with no hyphens or numeric prefixes
+- File compiles successfully with `javac`

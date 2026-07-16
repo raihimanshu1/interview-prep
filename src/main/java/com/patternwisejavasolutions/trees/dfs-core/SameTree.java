@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.trees.dfscore;
 
-package com.patternwisejavasolutions.trees.dfsCore;
 import java.util.LinkedList;
 import java.util.Queue;
 

@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.slidingwindowtwopointers.windowoptimization;
 
-package com.patternwisejavasolutions.slidingWindowTwoPointers.windowOptimization;
 import java.util.ArrayDeque;
 import java.util.Deque;
 

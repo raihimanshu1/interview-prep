@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.trees.structural;
+
 import java.util.LinkedList;
 import java.util.Queue;
 

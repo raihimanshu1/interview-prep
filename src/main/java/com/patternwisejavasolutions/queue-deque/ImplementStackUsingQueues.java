@@ -1,3 +1,5 @@
+package com.patternwisejavasolutions.queuedeque;
+
 /**
  * IMPLEMENT STACK USING QUEUES
  * 
@@ -9,11 +11,6 @@
  * 
  * LeetCode 225 - Easy
  */
-
-package com.patternwisejavasolutions.queueDeque;
-
-
-
 
 import java.util.LinkedList;
 import java.util.Queue;

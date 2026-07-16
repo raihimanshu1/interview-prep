@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class StorybookWithLoops {
@@ -25,6 +24,7 @@ public class StorybookWithLoops {
      * WHAT IT MEANS
      * Use visited pages so loops do not trap traversal.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

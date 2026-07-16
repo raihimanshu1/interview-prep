@@ -1,3 +1,5 @@
+package com.patternwisejavasolutions.linkedlist.basics;
+
 /**
  * LINKED LIST — Basics & Warmup
  * 
@@ -10,11 +12,6 @@
  * 6. Reverse (iterative & recursive)
  * 7. Middle of list (slow & fast pointer)
  */
-
-package com.patternwisejavasolutions.linkedList.basics;
-
-
-
 
 public class LinkedListBasics {
     // ==========================================

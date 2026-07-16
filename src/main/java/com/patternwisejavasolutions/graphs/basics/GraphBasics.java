@@ -1,3 +1,5 @@
+package com.patternwisejavasolutions.graphs.basics;
+
 /**
  * GRAPH — Basics & Warmup
  * 
@@ -9,11 +11,6 @@
  * 5. Topological sort (Kahn's algorithm & DFS-based)
  * 6. Graph framework & patterns
  */
-
-package com.patternwisejavasolutions.graphs.basics;
-
-
-
 
 import java.util.*;
 public class GraphBasics {

@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.ebay.solutions;
+
 import java.util.Random;
 
 public class DesignSkiplist {

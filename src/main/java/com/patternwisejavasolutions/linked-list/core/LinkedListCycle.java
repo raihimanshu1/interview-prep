@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.linkedlist.core;
 
-package com.patternwisejavasolutions.linkedList.core;
 import java.util.HashSet;
 import java.util.Set;
 

@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class SubstitutionCipher {
@@ -25,6 +24,7 @@ public class SubstitutionCipher {
      * WHAT IT MEANS
      * Unique key letters start the cipher alphabet, followed by remaining alphabet letters.
      */
+
     /*
      * IN-DEPTH EXPLANATION
      *

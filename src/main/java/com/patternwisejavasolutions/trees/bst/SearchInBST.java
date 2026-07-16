@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.trees.bst;
+
 public class SearchInBST {
 
     /* PROBLEM IN SIMPLE WORDS

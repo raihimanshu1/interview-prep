@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.intervalsgreedy.intervals;
 
-package com.patternwisejavasolutions.intervalsGreedy.intervals;
 import java.util.Arrays;
 
 public class MeetingRoomsI {

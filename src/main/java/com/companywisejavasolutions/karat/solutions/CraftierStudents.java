@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class CraftierStudents {
@@ -25,6 +24,7 @@ public class CraftierStudents {
      * WHAT IT MEANS
      * A trie can find all words below the prefix node.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

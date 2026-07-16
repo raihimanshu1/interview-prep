@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.dynamicprogramming.grid;
 
-package com.patternwisejavasolutions.dynamicProgramming.grid;
 public class MinimumPathSum {
 
     /*

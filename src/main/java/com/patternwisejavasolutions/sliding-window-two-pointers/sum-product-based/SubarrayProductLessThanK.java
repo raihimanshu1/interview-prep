@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.slidingwindowtwopointers.sumproductbased;
 
-package com.patternwisejavasolutions.slidingWindowTwoPointers.sumProductBased;
 public class SubarrayProductLessThanK {
 
     /*

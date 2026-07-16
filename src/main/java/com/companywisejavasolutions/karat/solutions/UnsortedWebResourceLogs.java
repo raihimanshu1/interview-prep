@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class UnsortedWebResourceLogs {
@@ -26,6 +25,7 @@ public class UnsortedWebResourceLogs {
      * WHAT IT MEANS
      * For each user, keep the minimum and maximum timestamp seen.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.stack.monotonicdecreasingnextsmaller;
 
-package com.patternwisejavasolutions.stack.monotonicDecreasingNextSmaller;
 import java.util.Stack;
 
 public class NextSmallerElement {

@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.intervalsgreedy.greedy;
 
-package com.patternwisejavasolutions.intervalsGreedy.greedy;
 public class JumpGame {
 
     /*

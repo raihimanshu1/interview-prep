@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class GridAdjacentNeighbor {
@@ -25,6 +24,7 @@ public class GridAdjacentNeighbor {
      * WHAT IT MEANS
      * Try up/down/left/right and keep coordinates within bounds.
      */
+
     /*
      * IN-DEPTH EXPLANATION
      *

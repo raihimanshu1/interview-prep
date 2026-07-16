@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.slidingwindowtwopointers.twopointerstyle;
 
-package com.patternwisejavasolutions.slidingWindowTwoPointers.twoPointerStyle;
 public class PairWithGivenSumSortedArray {
 
     /*

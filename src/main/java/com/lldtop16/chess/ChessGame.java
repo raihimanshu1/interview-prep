@@ -1,11 +1,12 @@
-
 package com.lldtop16.chess;
+
 public class ChessGame {
     /*
     ========================================================
     ENUM
     ========================================================
     */
+
     enum Color {
         WHITE,
         BLACK

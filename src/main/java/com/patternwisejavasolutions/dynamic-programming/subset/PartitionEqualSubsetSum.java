@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.dynamicprogramming.subset;
 
-package com.patternwisejavasolutions.dynamicProgramming.subset;
 import java.util.HashSet;
 import java.util.Set;
 

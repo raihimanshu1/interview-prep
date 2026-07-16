@@ -1,3 +1,5 @@
+package com.patternwisejavasolutions.arrayshashing.multipointercombination;
+
 /**
  * TWO SUM CLOSEST — Find pair with sum closest to target
  * 
@@ -10,11 +12,6 @@
  * Pattern: Sort + Two-pointer (opposite direction)
  * O(n log n) time, O(1) space (or O(n) for sorting)
  */
-
-package com.patternwisejavasolutions.arraysHashing.multiPointerCombination;
-
-
-
 
 import java.util.Arrays;
 public class TwoSumClosest {

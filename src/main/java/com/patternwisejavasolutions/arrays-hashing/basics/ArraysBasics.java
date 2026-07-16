@@ -1,3 +1,5 @@
+package com.patternwisejavasolutions.arrayshashing.basics;
+
 /**
  * ARRAYS — Basics & Warmup
  * 
@@ -8,11 +10,6 @@
  * 4. In-place array manipulation
  * 5. Kadane's algorithm (max subarray)
  */
-
-package com.patternwisejavasolutions.arraysHashing.basics;
-
-
-
 
 import java.util.*;
 public class ArraysBasics {

@@ -1,5 +1,5 @@
+package com.companywisejavasolutions.karat.lldjavasolutions;
 
-package com.companywisejavasolutions.karat.lldJavaSolutions;
 public class ServerCapacityEstimation {
 
     /*

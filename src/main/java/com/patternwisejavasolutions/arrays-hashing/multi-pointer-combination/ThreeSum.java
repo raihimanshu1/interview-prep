@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.arrayshashing.multipointercombination;
 
-package com.patternwisejavasolutions.arraysHashing.multiPointerCombination;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;

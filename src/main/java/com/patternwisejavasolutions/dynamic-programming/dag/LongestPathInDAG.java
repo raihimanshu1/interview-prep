@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.dynamicprogramming.dag;
 
-package com.patternwisejavasolutions.dynamicProgramming.dag;
 public class LongestPathInDAG {
 
     /*

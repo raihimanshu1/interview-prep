@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.arrayshashing.core;
 
-package com.patternwisejavasolutions.arraysHashing.core;
 import java.util.HashSet;
 import java.util.Set;
 

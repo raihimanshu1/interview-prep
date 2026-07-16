@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.dynamicprogramming.strings;
 
-package com.patternwisejavasolutions.dynamicProgramming.strings;
 public class WildcardMatching {
 
     /*

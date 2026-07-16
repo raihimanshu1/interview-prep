@@ -1,3 +1,5 @@
+package com.patternwisejavasolutions.stack.basics;
+
 /**
  * STACK — Basics & Warmup
  * 
@@ -8,11 +10,6 @@
  * 4. Next Greater/Previous Greater/NSE/PSE patterns
  * 5. Min Stack (track min in O(1))
  */
-
-package com.patternwisejavasolutions.stack.basics;
-
-
-
 
 import java.util.*;
 public class StackBasics {

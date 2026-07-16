@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.ebay.solutions;
+
 public class IntegerToEnglishWords {
 
     private static final String[] BELOW_TWENTY = {

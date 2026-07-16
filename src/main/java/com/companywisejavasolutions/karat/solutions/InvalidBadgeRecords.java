@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class InvalidBadgeRecords {
@@ -25,6 +24,7 @@ public class InvalidBadgeRecords {
      * WHAT IT MEANS
      * Track whether each employee is currently inside. Invalid state transitions reveal missing records.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

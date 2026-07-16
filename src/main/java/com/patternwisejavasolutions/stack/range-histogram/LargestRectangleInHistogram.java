@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.stack.rangehistogram;
 
-package com.patternwisejavasolutions.stack.rangeHistogram;
 import java.util.Stack;
 
 public class LargestRectangleInHistogram {

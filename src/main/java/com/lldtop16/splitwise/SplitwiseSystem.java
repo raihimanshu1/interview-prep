@@ -1,3 +1,5 @@
+package com.lldtop16.splitwise;
+
 /*Let's build **Splitwise LLD** in the same style as previous systems:
         * Single runnable Java file
         * Explanation at the top
@@ -125,17 +127,13 @@
         # Runnable Java Code
         ```java*/
 
-package com.lldtop16.splitwise;
-
-
-
-import java.util.*;
+/*import java.util.*;
 public class SplitwiseSystem {
-    /*
+    *//*
     =====================================================
     USER
     =====================================================
-    */
+    *//*
     static class User {
         private final String id;
         private final String name;
@@ -147,13 +145,13 @@ public class SplitwiseSystem {
             return name;
         }
     }
-    /*
+    *//*
     =====================================================
     SPLIT
     =====================================================
     Represents how much one user owes
     =====================================================
-    */
+    *//*
     static class Split {
         User user;
         double amount;
@@ -162,11 +160,11 @@ public class SplitwiseSystem {
             this.amount = amount;
         }
     }
-    /*
+    *//*
     =====================================================
     EXPENSE
     =====================================================
-    */
+    *//*
     static class Expense {
         String description;
         double amount;
@@ -179,19 +177,19 @@ public class SplitwiseSystem {
             this.splits = splits;
         }
     }
-    /*
+    *//*
     =====================================================
     SPLIT STRATEGY
     =====================================================
-    */
+    *//*
     interface SplitStrategy {
         List<Split> split(double amount, List<User> users);
     }
-    /*
+    *//*
     =====================================================
     EQUAL SPLIT
     =====================================================
-    */
+    *//*
     static class EqualSplit implements SplitStrategy {
         public List<Split> split(double amount, List<User> users) {
             double share = amount / users.size();
@@ -202,12 +200,12 @@ public class SplitwiseSystem {
             return result;
         }
     }
-    /*
+    *//*
     =====================================================
     BALANCE SHEET
     Tracks who owes whom
     =====================================================
-    */
+    *//*
     static class BalanceSheet {
         private final Map<User, Map<User, Double>> balances = new HashMap<>();
         public void updateBalance(User paidBy, List<Split> splits) {
@@ -215,13 +213,13 @@ public class SplitwiseSystem {
                 if (split.user == paidBy) {
                     continue;
                 }
-                /*
+                *//*
                 Example:
                 A paid 3000
                 B owes A 1000
                 store:
                 A -> B = 1000
-                */
+                *//*
                 balances.computeIfAbsent(paidBy, x -> new HashMap<>()).merge(split.user, split.amount, Double::sum);
             }
         }
@@ -233,11 +231,11 @@ public class SplitwiseSystem {
             }
         }
     }
-    /*
+    *//*
     =====================================================
     SPLITWISE SERVICE
     =====================================================
-    */
+    *//*
     static class SplitwiseService {
         BalanceSheet balanceSheet = new BalanceSheet();
         public void addExpense(String description, double amount, User paidBy, List<User> users, SplitStrategy strategy) {
@@ -249,27 +247,27 @@ public class SplitwiseSystem {
             balanceSheet.showBalances();
         }
     }
-    /*
+    *//*
     =====================================================
     MAIN
     =====================================================
-    */
+    *//*
     public static void main(String[] args) {
         User a = new User("A");
         User b = new User("B");
         User c = new User("C");
         SplitwiseService service = new SplitwiseService();
-        /*
+        *//*
         A pays dinner ₹3000
         Split equally between:
         A
         B
         C
-        */
+        *//*
         service.addExpense("Dinner", 3000, a, List.of(a, b, c), new EqualSplit());
         service.showBalances();
     }
-}
+}*/
 /*
 ```
         ---

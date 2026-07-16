@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.karat.solutions;
+
 import java.util.*;
 
 public class TopKFrequentWords {
@@ -25,6 +24,7 @@ public class TopKFrequentWords {
      * WHAT IT MEANS
      * Count words, then rank by frequency descending and word ascending.
      */
+
     /*
      * SCHOOL-LEVEL INTUITION
      *

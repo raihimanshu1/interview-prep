@@ -1,6 +1,5 @@
-
-
 package com.companywisejavasolutions.ebay.solutions;
+
 import java.util.Arrays;
 
 public class EarliestPossibleDayOfFullBloom {

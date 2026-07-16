@@ -1,5 +1,5 @@
+package com.patternwisejavasolutions.slidingwindowtwopointers.sumproductbased;
 
-package com.patternwisejavasolutions.slidingWindowTwoPointers.sumProductBased;
 import java.util.HashMap;
 import java.util.Map;
 

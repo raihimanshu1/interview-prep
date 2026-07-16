@@ -1,5 +1,5 @@
-
 package com.patternwisejavasolutions.trees.important;
+
 public class PathSum {
 
     /* PROBLEM IN SIMPLE WORDS
