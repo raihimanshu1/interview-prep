@@ -49,9 +49,10 @@ merged.add(current);
 | 1 | **Meeting Rooms I** | [intervals/MeetingRoomsI.java](intervals/MeetingRoomsI.java) | Sort by start, check if next start < prev end | 🟢 Easy |
 | 2 | **Merge Intervals** | [intervals/MergeIntervals.java](intervals/MergeIntervals.java) | Sort by start, merge overlapping | 🟡 Medium |
 | 3 | **Insert Interval** | [intervals/InsertInterval.java](intervals/InsertInterval.java) | Find insertion point, merge overlapping | 🟡 Medium |
-| 4 | **Non-Overlapping Intervals** | [intervals/NonOverlappingIntervals.java](intervals/NonOverlappingIntervals.java) | Sort by end, greedy — keep earliest ending | 🟡 Medium |
-| 5 | **Meeting Rooms II** | [intervals/MeetingRoomsII.java](intervals/MeetingRoomsII.java) | Sort by start, min-heap of end times OR sweep line | 🟡 Medium |
-| 6 | **Minimum Arrows to Burst Balloons** | [intervals/MinimumNumberOfArrowsToBurstBalloons.java](intervals/MinimumNumberOfArrowsToBurstBalloons.java) | Sort by end, greedy overlap | 🟡 Medium |
+| 4 | **Interval Intersection** | [intervals/IntervalIntersection.java](intervals/IntervalIntersection.java) | Two pointers on sorted intervals | 🟡 Medium |
+| 5 | **Non-Overlapping Intervals** | [intervals/NonOverlappingIntervals.java](intervals/NonOverlappingIntervals.java) | Sort by end, greedy — keep earliest ending | 🟡 Medium |
+| 6 | **Meeting Rooms II** | [intervals/MeetingRoomsII.java](intervals/MeetingRoomsII.java) | Sort by start, min-heap of end times OR sweep line | 🟡 Medium |
+| 7 | **Minimum Arrows to Burst Balloons** | [intervals/MinimumNumberOfArrowsToBurstBalloons.java](intervals/MinimumNumberOfArrowsToBurstBalloons.java) | Sort by end, greedy overlap | 🟡 Medium |
 
 ### Phase 2: Greedy
 
