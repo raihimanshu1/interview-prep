@@ -42,6 +42,45 @@ If the user is working inside a company folder, it is acceptable to place the ge
 9. Add tricky interview variations and follow-up questions with answers.
 10. End with a short 30-second interview answer.
 
+## 🚨 CRITICAL RULE: Strict Answer Framework (MANDATORY)
+
+**Before writing ANY answer, apply the COMPLETE framework from `references/strict-answer-framework.md`.**
+
+### The 10-Point Answer Verification (Must Cover ALL):
+
+```
+[ ] 1. Best case (ideal conditions)
+[ ] 2. Average case (typical usage)
+[ ] 3. Worst case (pathological input)
+[ ] 4. Version differences (Java 7 vs 8+ vs 11+ vs 17+)
+[ ] 5. Edge cases (nulls, duplicates, thread safety, empty)
+[ ] 6. Internal implementation reason (WHY? step-by-step)
+[ ] 7. Trade-offs (what you GAIN vs SACRIFICE)
+[ ] 8. Common mistakes (what 90% of devs get wrong)
+[ ] 9. Real production example
+[ ] 10. Anticipated follow-up (next 3 questions)
+```
+
+### Rule #0: Every Code Block Must Have LINE-BY-LINE Comments
+
+**FAILURE TO DO THIS = CONTENT REJECTED.**
+
+Every code example must explain EACH LINE:
+- WHAT it does
+- WHY it's there  
+- What could go wrong
+
+### Post-Generation Checks (Run Before Completion):
+
+1. **Code Comment Coverage**: Every line explained with comments
+2. **ChatGPT-Broke Test**: Would ChatGPT give the same answer? If YES → not deep enough
+3. **Basic→Advanced Progression**: Covers Levels 1-7 (story → intuition → code → internals → edge cases → production → interview defense)
+4. **Interviewer Mind-Reading**: Can reader answer next 3 follow-ups?
+
+**FAILURE TO PASS ALL CHECKS = INCOMPLETE ANSWER = REJECTION RISK**
+
+Full reference: `references/strict-answer-framework.md`
+
 ## Deep Dive Requirements
 
 **FAILURE TO INCLUDE THESE = CONTENT IS INCOMPLETE**

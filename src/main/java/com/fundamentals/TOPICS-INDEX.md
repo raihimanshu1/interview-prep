@@ -49,7 +49,7 @@ All files follow the 10-section format: Why Matters → Basic Meaning → Real C
 - [x] CountDownLatch & CyclicBarrier — `fundamentals/multi-threading/countdownlatch-cyclicbarrier/README.md`
 - [x] CompletableFuture — `fundamentals/multi-threading/completablefuture/README.md`
 
-### Core Java (7)
+### Core Java (16)
 - [x] String handling — `fundamentals/core-java/string-handling/README.md`
 - [x] String pool/intern — `fundamentals/core-java/string-pool-intern/README.md`
 - [x] Autoboxing — `fundamentals/core-java/autoboxing/README.md`
@@ -58,6 +58,19 @@ All files follow the 10-section format: Why Matters → Basic Meaning → Real C
 - [x] Comparable/Comparator — `fundamentals/core-java/comparable-comparator/README.md`
 - [x] Stream API — `fundamentals/core-java/stream-api/README.md`
 - [x] Optional — `fundamentals/core-java/optional/README.md`
+- [x] Pass-by-value — `fundamentals/core-java/pass-by-value/README.md` *(enhanced)*
+- [x] Constructors & static initialization — `fundamentals/core-java/constructors-static-initialization/README.md` *(enhanced)*
+- [x] == vs equals() — `fundamentals/core-java/equals-operator-vs-method/README.md` *(enhanced)*
+- [x] Method overloading vs overriding — `fundamentals/core-java/method-overloading-overriding-serialization/README.md` *(rewritten: overloading/overriding only)*
+- [x] final vs immutable — `fundamentals/core-java/final-vs-immutable/README.md` *(NEW)*
+- [x] null with overloaded methods — `fundamentals/core-java/null-overloaded-methods/README.md` *(NEW)*
+- [x] BigDecimal — `fundamentals/core-java/bigdecimal/README.md` *(NEW)*
+- [x] Increment/decrement puzzles — `fundamentals/core-java/increment-decrement/README.md` *(NEW)*
+- [x] JVM architecture — `fundamentals/core-java/jvm-architecture/README.md`
+- [x] Java Memory Model — `fundamentals/core-java/java-memory-model/README.md`
+- [x] Java version features — `fundamentals/core-java/java-version-features/README.md`
+- [x] GC tuning — `fundamentals/core-java/gc-tuning/README.md`
+- [x] Java 8 functional — `fundamentals/core-java/java-8-functional/README.md`
 
 ### OOP (& SOLID) (4)
 - [x] Polymorphism — `fundamentals/object-oriented-programming/polymorphism/README.md`
